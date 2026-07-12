@@ -263,6 +263,12 @@ catch(error){
        dispatch(setIsLoading(false));
     }
   };
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   return (
    <div className="w-full overflow-hidden px-3 md:px-5 py-4 border-t border-white/[0.06] bg-[#0d0f14]">
@@ -433,6 +439,7 @@ className="text-slate-500 hover:text-white"
         <textarea
           value={value}
           onChange={e => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder={
 placeholders[selectedAgent]
 }
