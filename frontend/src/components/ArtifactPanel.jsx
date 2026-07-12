@@ -1,24 +1,55 @@
-import { useState } from "react";
-import { useSelector } from "react-redux";
-import Editor from "@monaco-editor/react";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import Editor, { DiffEditor } from "@monaco-editor/react";
 import { FiCode } from "react-icons/fi";
 import { detectLanguage } from "../utils/detectLanguage";
-import { Code2, Eye, PanelRightClose, PanelRightOpen, X, Copy, Check } from "lucide-react";
+import { Code2, Eye, PanelRightClose, PanelRightOpen, X, Copy, Check, GitCompare, RotateCcw, History, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { addMessage, setArtifacts } from "../redux/message.slice";
+import { saveMessageApi } from "../features/message.api";
 
 export default function ArtifactPanel() {
+  const dispatch = useDispatch();
   const [tab, setTab]               = useState("code");
   const [activeFile, setActiveFile] = useState(0);
   const [collapsed, setCollapsed]   = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [copied, setCopied]         = useState(false);
 
-  const { artifacts } = useSelector(state => state.message);
-  const artifact = artifacts?.[0];
+  const { messages } = useSelector(state => state.message);
+  const { selectedConversation } = useSelector(state => state.conversation);
+
+  const allArtifactVersions = messages
+    .filter(msg => msg.role === "assistant" && msg.artifacts && msg.artifacts.length > 0)
+    .flatMap(msg => msg.artifacts);
+
+  const [selectedVersionIndex, setSelectedVersionIndex] = useState(-1);
+  const [showDiff, setShowDiff] = useState(false);
+  const [versionMenuOpen, setVersionMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (allArtifactVersions.length > 0) {
+      setSelectedVersionIndex(allArtifactVersions.length - 1);
+    } else {
+      setSelectedVersionIndex(-1);
+    }
+  }, [allArtifactVersions.length, selectedConversation?._id]);
+
+  // Close version dropdown menu when clicking anywhere else
+  useEffect(() => {
+    const handleOutsideClick = () => setVersionMenuOpen(false);
+    window.addEventListener("click", handleOutsideClick);
+    return () => window.removeEventListener("click", handleOutsideClick);
+  }, []);
+
+  const artifact = allArtifactVersions[selectedVersionIndex] || allArtifactVersions[allArtifactVersions.length - 1];
+  const previousArtifact = selectedVersionIndex > 0 ? allArtifactVersions[selectedVersionIndex - 1] : null;
 
   if (!artifact) return null;
 
-  const file       = artifact?.files?.[activeFile];
+  const file = artifact?.files?.[activeFile];
+  const previousFile = previousArtifact?.files?.find(f => f.name === file?.name);
+
   const htmlFile   = artifact?.files?.find(f => f.name === "index.html");
   const cssFile    = artifact?.files?.find(f => f.name === "style.css");
   const jsFile     = artifact?.files?.find(f => f.name === "script.js");
@@ -43,6 +74,31 @@ ${htmlFile?.content || ""}
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleRestoreVersion = async () => {
+    if (selectedVersionIndex === -1 || !selectedConversation) return;
+    try {
+      const targetVersion = allArtifactVersions[selectedVersionIndex];
+      const restoredArtifact = {
+        ...targetVersion,
+        id: Date.now(),
+        createdAt: new Date().toISOString()
+      };
+
+      const messageData = {
+        conversationId: selectedConversation._id,
+        role: "assistant",
+        content: `Restored project to Version ${selectedVersionIndex + 1}: "${targetVersion.title}"`,
+        artifacts: [restoredArtifact]
+      };
+
+      const savedMessage = await saveMessageApi(messageData);
+      dispatch(addMessage(savedMessage));
+      dispatch(setArtifacts([restoredArtifact]));
+    } catch (err) {
+      console.error("Failed to restore version:", err);
+    }
+  };
+
 
 
   /* ── Shared code panel content ── */
@@ -62,12 +118,84 @@ ${htmlFile?.content || ""}
           <div className="flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/10 border border-indigo-500/20 shrink-0">
             <FiCode className="text-indigo-400" size={12} />
           </div>
-          <h2 className="text-[13px] font-medium text-slate-200 truncate">{artifact.title}</h2>
+          <h2 className="text-[13px] font-medium text-slate-200 truncate flex-1">{artifact.title}</h2>
+
+          {/* Version history dropdown (only if multiple versions exist) */}
+          {allArtifactVersions.length > 1 && (
+            <div className="relative shrink-0">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setVersionMenuOpen(!versionMenuOpen);
+                }}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] border border-white/[0.08] text-slate-300 hover:text-white transition-all cursor-pointer"
+              >
+                <History size={13} className="text-slate-400" />
+                <span>v{selectedVersionIndex + 1}</span>
+                <ChevronDown size={12} className={`text-slate-500 transition-transform ${versionMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {versionMenuOpen && (
+                <div 
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute right-0 top-9 z-50 w-56 bg-[#161821] border border-white/[0.08] rounded-xl py-1.5 shadow-xl max-h-60 overflow-y-auto"
+                >
+                  {allArtifactVersions.map((ver, idx) => (
+                    <button
+                      key={ver.id || idx}
+                      onClick={() => {
+                        setSelectedVersionIndex(idx);
+                        setVersionMenuOpen(false);
+                      }}
+                      className={`w-full flex flex-col px-3.5 py-2 text-left text-xs font-medium border-none bg-transparent cursor-pointer transition-all hover:bg-white/[0.04]
+                        ${idx === selectedVersionIndex ? "text-indigo-400 bg-indigo-500/5" : "text-slate-300 hover:text-white"}`}
+                    >
+                      <span className="font-bold flex items-center gap-1">
+                        Version {idx + 1}
+                        {idx === allArtifactVersions.length - 1 && (
+                          <span className="text-[9px] px-1.5 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded font-semibold">Latest</span>
+                        )}
+                      </span>
+                      <span className="text-[10px] text-slate-500 truncate mt-0.5">{ver.title}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          {/* Copy button — only in code tab */}
-          {tab === "code" && (
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Restore Button (only if viewing an older version) */}
+          {selectedVersionIndex < allArtifactVersions.length - 1 && (
+            <button
+              onClick={handleRestoreVersion}
+              className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/15 rounded-lg transition-colors cursor-pointer shrink-0"
+              title="Restore this version as latest"
+            >
+              <RotateCcw size={12} />
+              <span>Restore</span>
+            </button>
+          )}
+
+          {/* Diff Button (only in code tab & if we have a previous version) */}
+          {tab === "code" && allArtifactVersions.length > 1 && (
+            <button
+              onClick={() => setShowDiff(!showDiff)}
+              className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg transition-all border shrink-0 cursor-pointer
+                ${showDiff 
+                  ? "bg-indigo-500 text-white border-transparent shadow-[0_1px_8px_rgba(99,102,241,0.3)]" 
+                  : "bg-transparent text-slate-400 border-white/[0.06] hover:bg-white/[0.05] hover:text-slate-200"
+                }`}
+              title="Toggle side-by-side diff view"
+            >
+              <GitCompare size={12} />
+              <span>Diff</span>
+            </button>
+          )}
+
+          {/* Copy button — only in code tab & not showing diff */}
+          {tab === "code" && !showDiff && (
             <button
               onClick={handleCopy}
               className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-200 hover:bg-white/[0.05] rounded-lg transition-colors duration-150 bg-transparent border-none cursor-pointer"
@@ -80,14 +208,19 @@ ${htmlFile?.content || ""}
           {canPreview && (
             <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.06] p-1 rounded-lg">
               <button
-                onClick={() => setTab("code")}
+                onClick={() => {
+                  setTab("code");
+                }}
                 className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors duration-150
                   ${tab === "code" ? "bg-indigo-500 text-white" : "text-slate-500 hover:text-slate-200"}`}
               >
                 <Code2 size={11} /> Code
               </button>
               <button
-                onClick={() => setTab("preview")}
+                onClick={() => {
+                  setTab("preview");
+                  setShowDiff(false); // Disable diff on preview
+                }}
                 className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors duration-150
                   ${tab === "preview" ? "bg-indigo-500 text-white" : "text-slate-500 hover:text-slate-200"}`}
               >
@@ -132,8 +265,28 @@ ${htmlFile?.content || ""}
             <motion.div key="preview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="w-full h-full">
               <iframe title="preview" sandbox="allow-scripts" srcDoc={previewDoc} className="w-full h-full bg-white" />
             </motion.div>
+          ) : showDiff ? (
+            <motion.div key={`diff-${selectedVersionIndex}-${activeFile}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="w-full h-full">
+              <DiffEditor
+                theme="vs-dark"
+                language={detectLanguage(file?.name || "")}
+                original={previousFile?.content || ""}
+                modified={file?.content || ""}
+                options={{ 
+                  readOnly: true, 
+                  originalEditable: false,
+                  minimap: { enabled: false }, 
+                  fontSize: 13, 
+                  wordWrap: "on", 
+                  automaticLayout: true, 
+                  scrollBeyondLastLine: false, 
+                  lineNumbers: "on", 
+                  renderLineHighlight: "none" 
+                }}
+              />
+            </motion.div>
           ) : (
-            <motion.div key={`code-${activeFile}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="w-full h-full">
+            <motion.div key={`code-${selectedVersionIndex}-${activeFile}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="w-full h-full">
               <Editor
                 theme="vs-dark"
                 language={detectLanguage(file?.name || "")}

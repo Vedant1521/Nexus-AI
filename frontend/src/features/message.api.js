@@ -8,3 +8,8 @@ export const getMessages =async(conversationId)=>{
  return data;
 
 };
+
+export const saveMessageApi = async (messageData) => {
+  const { data } = await api.post("/api/chat/save-message", messageData);
+  return data;
+};

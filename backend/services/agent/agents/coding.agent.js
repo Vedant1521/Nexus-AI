@@ -1,6 +1,7 @@
 import { checkAgentLimit } from "../config/agentRateLimit.js";
 import { deductCredits } from "../utils/deductCredits.js";
 import { getModel } from "../utils/model.js";
+import { getConversationHistory } from "../utils/getConv.js";
 
 export const codingAgent = async (state) => {
 
@@ -23,10 +24,27 @@ function cleanCode(code = "") {
     .trim();
 }
 
-  const llm =
-    getModel("coding");
+  const llm = getModel("coding");
 
- const response = await llm.invoke(`You are NexusAI Coding Agent.
+  let history = [];
+  try {
+    history = await getConversationHistory(state.conversationId);
+  } catch (err) {
+    console.error("Failed to load conversation history for coding agent:", err);
+  }
+
+  // Find the latest assistant message containing code artifacts
+  const lastArtifactMessage = [...history]
+    .reverse()
+    .find(msg => msg.role === "assistant" && msg.artifacts && msg.artifacts.length > 0);
+
+  let previousCodeContext = "";
+  if (lastArtifactMessage && lastArtifactMessage.artifacts && lastArtifactMessage.artifacts.length > 0) {
+    const lastArtifact = lastArtifactMessage.artifacts[0];
+    previousCodeContext = lastArtifact.files.map(f => `FILE: ${f.name}\n${f.content}`).join("\n\n");
+  }
+
+  let promptMessages = `You are NexusAI Coding Agent.
 
 Your first task is to identify the user's intent.
 
@@ -205,23 +223,14 @@ OUTPUT
 
 If intent is CODE_GENERATION
 
-Return ONLY:
-
+Return ONLY the code files using the FILE: filename format. 
+DO NOT include any conversational text or markdown outside of the files.
+Example output:
 FILE: index.html
-
-...
+<html>...</html>
 
 FILE: style.css
-
-...
-
-FILE: script.js
-
-...
-
-No markdown.
-
-No explanation.
+body {...}
 
 If intent is REVIEW / EXPLAIN / DEBUG
 
@@ -238,10 +247,40 @@ Maximum ~2000 output tokens.
 Prefer concise but beautiful code.
 
 Generate only what is required.
+`;
 
-User Request:
+  if (previousCodeContext) {
+    promptMessages += `
+=========================
+EXISTING CODEBASE
+=========================
+Here is the current code of the project. When updating or editing, you MUST modify this code. Keep the structure intact and only apply the requested edits. Return the FULL files including the edits.
 
-${state.prompt}`);
+${previousCodeContext}
+`;
+  }
+
+  if (history && history.length > 0) {
+    promptMessages += `
+=========================
+CONVERSATION HISTORY
+=========================
+Here are the previous messages in this chat conversation:
+`;
+    history.forEach(msg => {
+      promptMessages += `\n[${msg.role.toUpperCase()}]: ${msg.content}\n`;
+    });
+  }
+
+  promptMessages += `
+=========================
+LATEST USER REQUEST
+=========================
+Modify the existing codebase (if provided above) or build a new project according to this prompt:
+"${state.prompt}"
+`;
+
+  const response = await llm.invoke(promptMessages);
 
   const content =
     response.content?.trim();
@@ -287,13 +326,21 @@ console.log(content)
     else if(prompt.includes("c++")){
       fileName = "main.cpp";
     }
-
-   
-
- 
-
   }
 
+  // Merge unmodified files from the previous version if they are missing in the new generation
+  if (lastArtifactMessage && lastArtifactMessage.artifacts && lastArtifactMessage.artifacts.length > 0) {
+    const lastArtifact = lastArtifactMessage.artifacts[0];
+    lastArtifact.files.forEach(oldFile => {
+      const isFileGenerated = files.some(f => f.name === oldFile.name);
+      if (!isFileGenerated) {
+        files.push({
+          name: oldFile.name,
+          content: oldFile.content
+        });
+      }
+    });
+  }
 
   if (!content.includes("FILE:")) {
   return {
