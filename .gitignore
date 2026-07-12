@@ -4,3 +4,12 @@ resume_points.md
 
 # Generated Images
 generated_images/
+
+# Environment Variables
+.env
+.env.*
+*.env
+
+# Do not ignore .env.example files
+!*.env.example
+!.env.example
