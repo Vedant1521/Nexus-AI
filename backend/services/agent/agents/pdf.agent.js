@@ -197,6 +197,10 @@ response: `
       error
     );
 
+    if (error.status) {
+      throw error;
+    }
+
     return {
 
       ...state,

@@ -378,6 +378,9 @@ const downloadUrl =
 };
   } catch (error) {
     console.log("PPT Agent Error:", error);
+    if (error.status) {
+      throw error;
+    }
     return { ...state, response: "Failed to generate presentation." };
   }
 };
