@@ -8,23 +8,30 @@ export const uploadToS3 =
 async (
   buffer,
   fileName,
-  contentType
+  contentType,
+  acl
 ) => {
 
+  const params = {
+    Bucket:
+      process.env.AWS_BUCKET_NAME,
+
+    Key:
+      fileName,
+
+    Body:
+      buffer,
+
+    ContentType:
+      contentType
+  };
+
+  if (acl) {
+    params.ACL = acl;
+  }
+
   await s3.send(
-    new PutObjectCommand({
-      Bucket:
-        process.env.AWS_BUCKET_NAME,
-
-      Key:
-        fileName,
-
-      Body:
-        buffer,
-
-      ContentType:
-        contentType
-    })
+    new PutObjectCommand(params)
   );
 
   return fileName;

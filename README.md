@@ -112,6 +112,7 @@ graph TB
 | 💳 **Billing & Payments** | Razorpay-integrated tiered plans (Free / Starter / Pro) with HMAC-SHA256 payment verification |
 | 🛡️ **Rate Limiting** | Per-user, per-agent Redis-backed rate limiting with atomic INCR/EXPIRE operations |
 | 💰 **Credit System** | Granular per-agent credit costs with real-time balance propagation to the session cache |
+| 🚀 **One-Click Deploy** | Instantly deploy generated HTML/CSS/JS frontend projects to a live, public AWS S3 URL from the Artifact panel |
 
 ---
 
@@ -451,7 +452,8 @@ All requests go through the **API Gateway** at `http://localhost:8000`.
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/agent/chat` | ✅ | Send a prompt to the agent orchestrator. Supports `multipart/form-data` for file uploads. |
+| `POST` | /api/agent/chat | ✅ | Send a prompt to the agent orchestrator. Supports `multipart/form-data` for file uploads. |
+| `POST` | /api/agent/deploy | ✅ | Deploy the current code files in the active artifact to a public S3 bucket and return a live URL. |
 
 **Request Body (form-data):**
 

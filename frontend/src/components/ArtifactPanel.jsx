@@ -3,10 +3,11 @@ import { useSelector, useDispatch } from "react-redux";
 import Editor, { DiffEditor } from "@monaco-editor/react";
 import { FiCode } from "react-icons/fi";
 import { detectLanguage } from "../utils/detectLanguage";
-import { Code2, Eye, PanelRightClose, PanelRightOpen, X, Copy, Check, GitCompare, RotateCcw, History, ChevronDown } from "lucide-react";
+import { Code2, Eye, PanelRightClose, PanelRightOpen, X, Copy, Check, GitCompare, RotateCcw, History, ChevronDown, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { addMessage, setArtifacts } from "../redux/message.slice";
 import { saveMessageApi } from "../features/message.api";
+import api from "../utils/axios";
 
 export default function ArtifactPanel() {
   const dispatch = useDispatch();
@@ -26,14 +27,21 @@ export default function ArtifactPanel() {
   const [selectedVersionIndex, setSelectedVersionIndex] = useState(-1);
   const [showDiff, setShowDiff] = useState(false);
   const [versionMenuOpen, setVersionMenuOpen] = useState(false);
+  const [deploying, setDeploying] = useState(false);
+  const [deployedUrl, setDeployedUrl] = useState("");
 
   useEffect(() => {
+    setDeployedUrl("");
     if (allArtifactVersions.length > 0) {
       setSelectedVersionIndex(allArtifactVersions.length - 1);
     } else {
       setSelectedVersionIndex(-1);
     }
   }, [allArtifactVersions.length, selectedConversation?._id]);
+
+  useEffect(() => {
+    setDeployedUrl("");
+  }, [selectedVersionIndex, activeFile]);
 
   // Close version dropdown menu when clicking anywhere else
   useEffect(() => {
@@ -100,6 +108,34 @@ ${htmlFile?.content || ""}
   };
 
 
+
+  const handleDeploy = async () => {
+    if (!artifact) return;
+    setDeploying(true);
+    setDeployedUrl("");
+    try {
+      const res = await api.post("/api/agent/deploy", {
+        title: artifact.title,
+        files: artifact.files.map(f => ({ name: f.name, content: f.content }))
+      });
+      if (res.data && res.data.success) {
+        setDeployedUrl(res.data.url);
+      }
+    } catch (err) {
+      console.error("Failed to deploy project:", err);
+      alert(err.response?.data?.message || "Deployment failed. Please try again.");
+    } finally {
+      setDeploying(false);
+    }
+  };
+
+  const onDeployClick = () => {
+    if (deployedUrl) {
+      window.open(deployedUrl, "_blank", "noopener,noreferrer");
+    } else {
+      handleDeploy();
+    }
+  };
 
   /* ── Shared code panel content ── */
   const PanelContent = ({ onClose }) => (
@@ -202,6 +238,40 @@ ${htmlFile?.content || ""}
             >
               {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
               {copied ? "Copied" : "Copy"}
+            </button>
+          )}
+
+          {/* Deploy Button */}
+          {canPreview && (
+            <button
+              onClick={onDeployClick}
+              disabled={deploying}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all border shrink-0 cursor-pointer disabled:opacity-50
+                ${deployedUrl 
+                  ? "bg-green-500/10 border-green-500/20 text-green-400 hover:bg-green-500/15" 
+                  : "bg-[#14b4dc]/10 border border-[#14b4dc]/20 text-[#14b4dc] hover:bg-[#14b4dc]/15"
+                }`}
+              title={deployedUrl ? "Click to open deployed site" : "Deploy static site to live hosting"}
+            >
+              {deploying ? (
+                <>
+                  <svg className="animate-spin h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span>Deploying...</span>
+                </>
+              ) : deployedUrl ? (
+                <>
+                  <Globe size={12} />
+                  <span>Live URL</span>
+                </>
+              ) : (
+                <>
+                  <Globe size={12} />
+                  <span>Deploy</span>
+                </>
+              )}
             </button>
           )}
 

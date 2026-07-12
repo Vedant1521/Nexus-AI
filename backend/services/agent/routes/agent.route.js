@@ -1,5 +1,5 @@
 import express from "express";
-import { chat } from "../controllers/agent.controller.js";
+import { chat, deploy } from "../controllers/agent.controller.js";
 import multer from "../config/multer.js";
 
 
@@ -11,6 +11,11 @@ router.post(
  "/chat",
  multer.single("file"),
  chat
+);
+
+router.post(
+ "/deploy",
+ deploy
 );
 
 export default router;
