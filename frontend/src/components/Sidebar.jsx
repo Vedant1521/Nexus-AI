@@ -1,23 +1,27 @@
 import { useEffect, useState } from "react";
-import { Plus, MessageSquare, Settings, LogOut, User, PenSquare, Menu, X, Coins, ConeIcon, CoinsIcon } from "lucide-react";
+import { Plus, MessageSquare, Settings, LogOut, User, PenSquare, Menu, X, Coins, ConeIcon, CoinsIcon, MoreVertical, Pin, PinOff, Trash2, Edit2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../utils/axios";
 import { setUserData } from "../redux/user.slice";
-import { createConversation, getConversations } from "../features/conversation.api";
-import { addConversation, setConversations, setSelectedConversation } from "../redux/conversation.slice";
+import { createConversation, getConversations, updateConversations, deleteConversationApi } from "../features/conversation.api";
+import { addConversation, setConversations, setSelectedConversation, removeConversation, updateConversationState } from "../redux/conversation.slice";
 import { getMessages } from "../features/message.api";
 import { setArtifacts, setMessages } from "../redux/message.slice";
-  import BillingDrawer from "./BillingDrawer";
+import BillingDrawer from "./BillingDrawer";
 
 export default function Sidebar() {
   const [hovered, setHovered]     = useState(null);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
- const [imageError,setImageError]=useState(false)
+  const [imageError,setImageError]=useState(false);
+  const [showBilling, setShowBilling] = useState(false);
+  const [activeMenu, setActiveMenu] = useState(null);
+  const [editingChatId, setEditingChatId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState("");
   const { userData } = useSelector(state => state.user);
   const { conversations, selectedConversation } = useSelector(state => state.conversation);
   const dispatch = useDispatch();
-const [showBilling, setShowBilling] =useState(false);
+
   const logout = async () => {
     try {
       await api.get("/api/auth/logout");
@@ -52,6 +56,53 @@ const [showBilling, setShowBilling] =useState(false);
     const messages = await getMessages(conversation._id);
     dispatch(setMessages(messages));
      dispatch(setArtifacts(messages.artifacts));
+  };
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setActiveMenu(null);
+    };
+    window.addEventListener("click", handleOutsideClick);
+    return () => window.removeEventListener("click", handleOutsideClick);
+  }, []);
+
+  const handleRenameSubmit = async (chatId) => {
+    if (!editingTitle.trim()) return;
+    try {
+      await updateConversations(chatId, editingTitle.trim());
+      dispatch(updateConversationState({ conversationId: chatId, title: editingTitle.trim() }));
+    } catch (err) {
+      console.error(err);
+    }
+    setEditingChatId(null);
+  };
+
+  const handleTogglePin = async (chat) => {
+    try {
+      const newPinState = !chat.isPinned;
+      await updateConversations(chat._id, undefined, newPinState);
+      dispatch(updateConversationState({ conversationId: chat._id, isPinned: newPinState }));
+    } catch (err) {
+      console.error(err);
+    }
+    setActiveMenu(null);
+  };
+
+  const handleDeleteConversation = async (chatId) => {
+    if (window.confirm("Are you sure you want to delete this chat?")) {
+      try {
+        await deleteConversationApi(chatId);
+        dispatch(removeConversation(chatId));
+        if (selectedConversation?._id === chatId) {
+          dispatch(setSelectedConversation(null));
+          dispatch(setMessages([]));
+          dispatch(setArtifacts([]));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    setActiveMenu(null);
   };
 
   const PanelIcon = () => (
@@ -185,7 +236,7 @@ const [showBilling, setShowBilling] =useState(false);
               onClick={() => handleSelectConversation(chat)}
               onMouseEnter={() => setHovered(chat._id)}
               onMouseLeave={() => setHovered(null)}
-              className={`flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-[10px] border transition-colors duration-150
+              className={`group relative flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-[10px] border transition-colors duration-150
                 ${isActive ? "bg-indigo-500/10 border-indigo-500/[0.18]"
                 : isHov   ? "bg-white/[0.05] border-transparent"
                 :            "bg-transparent border-transparent"}`}
@@ -194,9 +245,90 @@ const [showBilling, setShowBilling] =useState(false);
                 ${isActive ? "bg-indigo-500/15 text-indigo-400" : "bg-white/[0.05] text-slate-500"}`}>
                 <MessageSquare size={13} />
               </div>
-              <p className={`text-[13px] font-medium truncate ${isActive ? "text-slate-100" : "text-slate-300"}`}>
-                {chat.title}
-              </p>
+              
+              <div className="flex-1 min-w-0 pr-6">
+                {editingChatId === chat._id ? (
+                  <input
+                    value={editingTitle}
+                    onChange={(e) => setEditingTitle(e.target.value)}
+                    onBlur={() => handleRenameSubmit(chat._id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleRenameSubmit(chat._id);
+                      if (e.key === "Escape") setEditingChatId(null);
+                    }}
+                    className="bg-transparent border border-indigo-500/50 rounded px-1.5 py-0.5 text-xs text-white outline-none w-full"
+                    autoFocus
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <p className={`text-[13px] font-medium truncate ${isActive ? "text-slate-100" : "text-slate-300"}`}>
+                      {chat.title}
+                    </p>
+                    {chat.isPinned && (
+                      <Pin size={10} className="text-indigo-400 shrink-0 rotate-45" />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {!editingChatId && (isHov || isActive || activeMenu === chat._id) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveMenu(activeMenu === chat._id ? null : chat._id);
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-md border-none bg-transparent hover:bg-white/10 text-slate-400 hover:text-white cursor-pointer transition-all"
+                >
+                  <MoreVertical size={13} />
+                </button>
+              )}
+
+              {activeMenu === chat._id && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute right-2 top-9 z-50 w-36 bg-[#161821] border border-white/[0.08] rounded-xl py-1.5 shadow-xl"
+                >
+                  <button
+                    onClick={() => handleTogglePin(chat)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-white border-none bg-transparent cursor-pointer"
+                  >
+                    {chat.isPinned ? (
+                      <>
+                        <PinOff size={12} className="text-slate-500" />
+                        Unpin
+                      </>
+                    ) : (
+                      <>
+                        <Pin size={12} className="text-slate-500" />
+                        Pin
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setEditingChatId(chat._id);
+                      setEditingTitle(chat.title);
+                      setActiveMenu(null);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-white border-none bg-transparent cursor-pointer"
+                  >
+                    <Edit2 size={12} className="text-slate-500" />
+                    Rename
+                  </button>
+
+                  <div className="my-1 border-t border-white/[0.06]" />
+
+                  <button
+                    onClick={() => handleDeleteConversation(chat._id)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 border-none bg-transparent cursor-pointer"
+                  >
+                    <Trash2 size={12} />
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}

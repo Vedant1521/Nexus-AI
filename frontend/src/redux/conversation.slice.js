@@ -26,35 +26,39 @@ export const conversationSlice = createSlice({
    state.selectedConversation =action.payload;
 
   },
-setConvTitle:(state,action)=>{
+removeConversation:(state,action)=>{
+  const conversationId = action.payload;
+  state.conversations = state.conversations.filter(conv => conv._id !== conversationId);
+  if (state.selectedConversation?._id === conversationId) {
+    state.selectedConversation = null;
+  }
+},
+updateConversationState:(state,action)=>{
+  const { conversationId, title, isPinned } = action.payload;
+  state.conversations = state.conversations.map((conv) => {
+    if (conv._id === conversationId) {
+      const updated = { ...conv };
+      if (title !== undefined) updated.title = title;
+      if (isPinned !== undefined) updated.isPinned = isPinned;
+      return updated;
+    }
+    return conv;
+  });
 
- const {
-  conversationId,
-  title
- } = action.payload;
+  // Sort: pinned first, then newest first
+  state.conversations.sort((a, b) => {
+    const aPin = a.isPinned ? 1 : 0;
+    const bPin = b.isPinned ? 1 : 0;
+    if (aPin !== bPin) return bPin - aPin;
+    return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+  });
 
- state.conversations =
- state.conversations.map((conv)=>
-  conv._id === conversationId
-   ? {
-      ...conv,
-      title
-     }
-   : conv
- );
-
- if(
-  state.selectedConversation?._id ===
-  conversationId
- ){
-
-  state.selectedConversation = {
-   ...state.selectedConversation,
-   title
-  };
-
- }
-
+  if (state.selectedConversation?._id === conversationId) {
+    const updatedSelected = { ...state.selectedConversation };
+    if (title !== undefined) updatedSelected.title = title;
+    if (isPinned !== undefined) updatedSelected.isPinned = isPinned;
+    state.selectedConversation = updatedSelected;
+  }
 }
 
  
@@ -62,6 +66,6 @@ setConvTitle:(state,action)=>{
 })
 
 // Action creators are generated for each case reducer function
-export const {setConversations,addConversation,setSelectedConversation,setConvTitle} = conversationSlice.actions
+export const {setConversations,addConversation,setSelectedConversation,removeConversation,updateConversationState} = conversationSlice.actions
 
 export default conversationSlice.reducer

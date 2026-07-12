@@ -6,7 +6,7 @@ import { sendPrompt } from "../features/agent.api";
 import { Mic, MicOff } from "lucide-react";
 import { useEffect } from "react";
 import { createConversation, updateConversations } from "../features/conversation.api";
-import { addConversation, setConvTitle, setSelectedConversation } from "../redux/conversation.slice";
+import { addConversation, updateConversationState, setSelectedConversation } from "../redux/conversation.slice";
 import { useRef } from "react";
 
 export default function ChatInput({
@@ -189,7 +189,7 @@ const toggleMic = () => {
 
       if (conversation.title === "New Chat") {
         await updateConversations(conversation._id, prompt.slice(0, 40));
-        dispatch(setConvTitle({ conversationId: conversation._id, title: prompt.slice(0, 40) }));
+        dispatch(updateConversationState({ conversationId: conversation._id, title: prompt.slice(0, 40) }));
       }
 
       dispatch(addMessage({ role: "user", content: prompt }));

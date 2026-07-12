@@ -9,10 +9,21 @@ export const getConversations =async()=>{
  return response.data;
 
 };
-export const updateConversations =async(conversationId,title)=>{
+export const updateConversations =async(conversationId,title,isPinned)=>{
 
  const response =await api.post( "/api/chat/update-conversation",{
-    conversationId,title
+    conversationId,title,isPinned
+ }
+ );
+
+ return response.data;
+
+};
+
+export const deleteConversationApi =async(conversationId)=>{
+
+ const response =await api.post( "/api/chat/delete-conversation",{
+    conversationId
  }
  );
 

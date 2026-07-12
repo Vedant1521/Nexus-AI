@@ -10,6 +10,10 @@ const conversationSchema =new mongoose.Schema({
  title:{
   type:String,
   default:"New Chat"
+ },
+ isPinned:{
+  type:Boolean,
+  default:false
  }
 
 },{

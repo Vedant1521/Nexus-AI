@@ -35,6 +35,7 @@ export const getConversations =async(req,res)=>{
 
   })
   .sort({
+   isPinned:-1,
    updatedAt:-1
   });
 
@@ -126,19 +127,30 @@ export const getMessages =async(req,res)=>{
 
 export const updateConversation=async (req,res)=>{
 try {
-    const {conversationId,title}=req.body
-    const conversation=await Conversation.findByIdAndUpdate( conversationId,{
-        title
-    })
-     res.json(
-   conversation
-  );
+    const {conversationId,title,isPinned}=req.body;
+    const updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (isPinned !== undefined) updateData.isPinned = isPinned;
 
+    const conversation=await Conversation.findByIdAndUpdate(conversationId, updateData, { new: true });
+    res.json(conversation);
  }catch(error){
-
   res.status(500).json({
    message:error.message
   });
+ }
+}
 
-}
-}
+export const deleteConversation = async (req, res) => {
+  try {
+    const { conversationId } = req.body;
+    if (!conversationId) {
+      return res.status(400).json({ message: "conversationId is required" });
+    }
+    await Conversation.findByIdAndDelete(conversationId);
+    await Message.deleteMany({ conversationId });
+    res.json({ success: true, message: "Conversation deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
