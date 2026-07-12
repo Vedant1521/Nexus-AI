@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { FaGoogle } from "react-icons/fa";
+import { FaGoogle, FaGithub } from "react-icons/fa";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase";
 import api from "../utils/axios";
@@ -44,7 +44,7 @@ export default function LoginPage() {
     <div className="min-h-screen w-screen flex flex-col lg:flex-row overflow-y-auto bg-[#060d14] font-outfit text-white">
       
       {/* ── LEFT COLUMN: Illustration & Intro ── */}
-      <div className="w-full lg:w-[56%] bg-[#060d14] flex flex-col items-center justify-center p-8 lg:p-16 min-h-[50vh] lg:min-h-screen select-none border-b lg:border-b-0 lg:border-r border-[rgba(20,180,220,0.08)] relative">
+      <div className="w-full lg:w-[56%] bg-[#060d14] flex flex-col items-center justify-start pt-14 lg:pt-24 p-8 lg:p-16 min-h-[50vh] lg:min-h-screen select-none border-b lg:border-b-0 lg:border-r border-[rgba(20,180,220,0.08)] relative">
         {/* Subtle grid pattern for left panel */}
         <div 
           className="absolute inset-0 opacity-[0.03] pointer-events-none"
@@ -55,6 +55,15 @@ export default function LoginPage() {
         />
         
         <div className="max-w-xl w-full flex flex-col items-center text-center gap-8 relative z-10">
+          
+          {/* Brand Header */}
+          <div className="flex flex-col items-center gap-2 mb-2 -mt-5">
+            <span className="text-3xl lg:text-4xl font-extrabold tracking-[0.26em] font-syncopate text-white pl-[0.26em] relative">
+              NEXUS <span className="text-[#14b4dc]" style={{ filter: "drop-shadow(0 0 10px rgba(20,180,220,0.55))" }}>AI</span>
+            </span>
+            <div className="w-14 h-[2px] bg-gradient-to-r from-transparent via-[#14b4dc]/50 to-transparent mt-0.5" />
+          </div>
+
           {/* Illustration Container */}
           <div className="relative w-full max-w-[420px] aspect-[4/3] rounded-2xl overflow-hidden flex items-center justify-center">
             <img 
@@ -67,9 +76,9 @@ export default function LoginPage() {
           {/* Heading Text */}
           <div className="flex flex-col gap-3">
             <h1 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
-              Turn your prompts into reality.
+              Turn your <span className="text-[#14b4dc] font-black italic">prompts</span> into <span className="bg-gradient-to-r from-[#14b4dc] to-[#0d9488] bg-clip-text text-transparent font-black italic">reality</span>.
             </h1>
-            <p className="text-sm lg:text-base text-[#7a9ab0] font-medium opacity-80 max-w-md mx-auto">
+            <p className="text-sm lg:text-base text-[#8faec4] font-semibold max-w-md mx-auto leading-relaxed">
               Start for free and build projects with a collaborative suite of specialized AI agents working in harmony.
             </p>
           </div>
@@ -86,11 +95,11 @@ export default function LoginPage() {
           }}
         />
 
-        <div className="max-w-md w-full mx-auto flex flex-col gap-8 relative z-10">
+        <div className="max-w-md w-full mx-auto flex flex-col gap-5 lg:gap-6 relative z-10">
           
           {/* Custom Geometric Logo Icon (matching screenshot, colored cyan) */}
           <div className="flex items-center text-[#14b4dc] w-fit">
-            <svg width="44" height="44" viewBox="0 0 48 48" fill="none" className="text-current">
+            <svg width="40" height="40" viewBox="0 0 48 48" fill="none" className="text-current">
               <rect x="22" y="8" width="4" height="32" rx="2" fill="currentColor" />
               <rect x="8" y="22" width="32" height="4" rx="2" fill="currentColor" />
               <circle cx="15" cy="15" r="2.5" fill="currentColor" />
@@ -123,7 +132,7 @@ export default function LoginPage() {
           </button>
 
           {/* Or Divider */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-[rgba(20,180,220,0.08)]" />
             <span className="text-xs font-semibold text-[#4a6b82] tracking-wider uppercase">
               or Sign in with Email
@@ -132,9 +141,9 @@ export default function LoginPage() {
           </div>
 
           {/* Email/Password Form */}
-          <form onSubmit={handleFormLogin} className="flex flex-col gap-5">
+          <form onSubmit={handleFormLogin} className="flex flex-col gap-4">
             {/* Email Field */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1">
               <label className="text-xs font-bold text-[#7a9ab0] uppercase tracking-wider">
                 Email
               </label>
@@ -144,12 +153,12 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="mail@abc.com"
-                className="w-full px-4 py-3 bg-[#060d14] border border-[rgba(20,180,220,0.12)] focus:border-[#14b4dc] rounded-xl outline-none text-white text-sm transition placeholder:text-slate-700 font-medium focus:ring-1 focus:ring-[#14b4dc]"
+                className="w-full px-4 py-2.5 bg-[#060d14] border border-[rgba(20,180,220,0.12)] focus:border-[#14b4dc] rounded-xl outline-none text-white text-sm transition placeholder:text-slate-700 font-medium focus:ring-1 focus:ring-[#14b4dc]"
               />
             </div>
 
             {/* Password Field */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1">
               <label className="text-xs font-bold text-[#7a9ab0] uppercase tracking-wider">
                 Password
               </label>
@@ -159,7 +168,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="***************"
-                className="w-full px-4 py-3 bg-[#060d14] border border-[rgba(20,180,220,0.12)] focus:border-[#14b4dc] rounded-xl outline-none text-white text-sm transition placeholder:text-slate-700 font-medium focus:ring-1 focus:ring-[#14b4dc]"
+                className="w-full px-4 py-2.5 bg-[#060d14] border border-[rgba(20,180,220,0.12)] focus:border-[#14b4dc] rounded-xl outline-none text-white text-sm transition placeholder:text-slate-700 font-medium focus:ring-1 focus:ring-[#14b4dc]"
               />
             </div>
 
@@ -207,16 +216,30 @@ export default function LoginPage() {
           </AnimatePresence>
 
           {/* Create Account Link */}
-          <p className="text-center text-xs text-[#7a9ab0] font-medium">
-            Not Registered Yet?{" "}
+          <div className="flex items-center justify-center gap-2 py-2.5 px-5 rounded-full bg-[#060d14]/60 border border-[rgba(20,180,220,0.08)] w-fit mx-auto text-xs shadow-sm">
+            <span className="text-[#7a9ab0] font-medium">Not Registered Yet?</span>
             <button 
               type="button" 
               onClick={handleGoogleLogin} 
-              className="text-[#14b4dc] hover:text-[#22c0e8] hover:underline font-bold bg-transparent border-none cursor-pointer"
+              className="text-[#14b4dc] hover:text-[#22c0e8] hover:underline font-bold bg-transparent border-none cursor-pointer transition-colors duration-150"
             >
               Create an account
             </button>
-          </p>
+          </div>
+
+          {/* Developer Github Credit */}
+          <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 mt-2 select-none">
+            <span>Developed by</span>
+            <a 
+              href="https://github.com/Vedant1521" 
+              target="_blank" 
+              rel="noreferrer" 
+              className="flex items-center gap-1 text-[#14b4dc] hover:text-[#22c0e8] hover:underline font-semibold transition-colors duration-150"
+            >
+              <FaGithub size={13} />
+              <span>Vedant1521</span>
+            </a>
+          </div>
 
         </div>
       </div>
