@@ -10,10 +10,11 @@ import { addConversation, updateConversationState, setSelectedConversation } fro
 import { useRef } from "react";
 
 export default function ChatInput({
-  setBanner
+  setBanner,
+  value,
+  setValue
 }) {
   const [selectedAgent, setSelectedAgent] =useState("auto");
-  const [value, setValue] = useState("");
 const [isListening, setIsListening] = useState(false);
 
 const recognitionRef = useRef(null);

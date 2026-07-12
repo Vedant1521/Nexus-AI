@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, MessageSquare, Settings, LogOut, User, PenSquare, Menu, X, Coins, ConeIcon, CoinsIcon, MoreVertical, Pin, PinOff, Trash2, Edit2 } from "lucide-react";
+import { Plus, MessageSquare, Settings, LogOut, User, PenSquare, Menu, X, Coins, ConeIcon, CoinsIcon, MoreVertical, Pin, PinOff, Trash2, Edit2, Crown } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../utils/axios";
 import { setUserData } from "../redux/user.slice";
@@ -181,11 +181,21 @@ export default function Sidebar() {
           <X size={15} />
         </button>
 
-        <span className="text-[16px] font-semibold text-slate-100 tracking-tight flex-1">NexusAI</span>
+        <div className="flex items-center gap-2 flex-1">
+          <img src="/logo.jpg" alt="NexusAI Logo" className="w-5 h-5 rounded-md object-cover" />
+          <span className="text-[16px] font-semibold text-slate-100 tracking-tight">NexusAI</span>
+        </div>
 
-        <span className="text-[10px] font-medium text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full tracking-wide">
-         {userData?.plan ?? "pro"}
-        </span>
+        {((userData?.plan ?? "pro").toLowerCase() === "pro") ? (
+          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold tracking-wider uppercase bg-gradient-to-r from-amber-500/20 to-yellow-600/20 text-amber-300 border border-amber-500/35 shadow-[0_0_15px_rgba(245,158,11,0.2)] shrink-0">
+            <Crown size={11} className="text-amber-400 fill-amber-400/25 shrink-0" />
+            Pro
+          </span>
+        ) : (
+          <span className="text-[11px] font-bold text-slate-400 bg-white/[0.04] border border-white/10 px-3 py-1 rounded-full tracking-wider uppercase shrink-0">
+            {userData?.plan}
+          </span>
+        )}
 
         <button
           onClick={handleCreateConversation}
@@ -256,7 +266,7 @@ export default function Sidebar() {
                       if (e.key === "Enter") handleRenameSubmit(chat._id);
                       if (e.key === "Escape") setEditingChatId(null);
                     }}
-                    className="bg-transparent border border-indigo-500/50 rounded px-1.5 py-0.5 text-xs text-white outline-none w-full"
+                    className="bg-white/[0.06] border-none text-[13px] font-medium text-slate-100 px-2 py-1 rounded-lg outline-none w-full ring-1 ring-white/10 focus:ring-indigo-500/40 transition-all"
                     autoFocus
                     onClick={(e) => e.stopPropagation()}
                   />

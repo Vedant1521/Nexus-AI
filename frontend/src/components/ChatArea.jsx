@@ -7,6 +7,7 @@ import Navbar from "./Navbar";
 
 
 function ChatArea() {
+  const [inputValue, setInputValue] = useState("");
   const [banner,setBanner]=useState({
     open:false,
     title:"",
@@ -17,7 +18,7 @@ function ChatArea() {
 
       <Navbar />
 
-      <MessageList />
+      <MessageList onSelectSuggestion={setInputValue} />
       <AIBanner
 
    open={banner.open}
@@ -39,6 +40,8 @@ function ChatArea() {
 
      <ChatInput
   setBanner={setBanner}
+  value={inputValue}
+  setValue={setInputValue}
 />
 
     </div>
