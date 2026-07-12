@@ -1,10 +1,15 @@
 <p align="center">
   <h1 align="center">🧠 NexusAI</h1>
   <p align="center">
-    <strong>A Distributed Multi-Agent AI Platform with Microservices Orchestration</strong>
+    <em>A Distributed Multi-Agent AI Platform with Microservices Orchestration</em>
   </p>
   <p align="center">
-    Built with LangGraph · Express · React · Redis · MongoDB · AWS S3 · Qdrant
+    <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+    <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+    <img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
+    <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
+    <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" />
+    <img src="https://img.shields.io/badge/AWS_S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white" alt="AWS S3" />
   </p>
 </p>
 
