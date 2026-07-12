@@ -33,7 +33,7 @@ const markdown = (content || "")
   leading-relaxed
         ${
           isUser
-            ? "bg-gradient-to-br from-indigo-500 to-violet-700 text-white rounded-tr-sm"
+            ? "bg-gradient-to-br from-[#14b4dc] to-[#0d9488] text-white rounded-tr-sm"
             : " text-slate-200 rounded-tl-sm"
         }`}
       >
@@ -108,7 +108,7 @@ const markdown = (content || "")
         href={href}
         target="_blank"
         rel="noreferrer"
-        className="text-indigo-400 underline inline-flex items-center gap-1"
+        className="text-[#14b4dc] underline inline-flex items-center gap-1"
       >
         {children}
         <FiExternalLink size={11} />
@@ -147,9 +147,9 @@ const markdown = (content || "")
       const language = className.replace("language-", "");
 
       return (
-        <div className="my-4 overflow-hidden rounded-xl border border-white/10 bg-[#111318]">
+        <div className="my-4 overflow-hidden rounded-xl border border-[rgba(20,180,220,0.12)] bg-[#0b1621]">
 
-          <div className="flex items-center justify-between bg-[#1b1d24] border-b border-white/10 px-4 py-2">
+          <div className="flex items-center justify-between bg-[#0f1e2e] border-b border-[rgba(20,180,220,0.12)] px-4 py-2">
 
             <span className="uppercase text-xs text-slate-400">
               {language}
@@ -182,7 +182,7 @@ const markdown = (content || "")
             customStyle={{
               margin: 0,
               padding: "16px",
-              background: "#0d1117",
+              background: "#07111a",
               fontSize: "13px",
             }}
           >

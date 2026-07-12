@@ -113,7 +113,7 @@ export default function Sidebar() {
 
   /* ── Collapsed rail — desktop only ── */
   const CollapsedRail = () => (
-    <div className="hidden lg:flex flex-col items-center w-[56px] h-screen bg-[#0d0f14] border-r border-white/[0.06] py-4 gap-1 shrink-0">
+    <div className="hidden lg:flex flex-col items-center w-[56px] h-screen bg-[#0b1621] border-r border-[rgba(20,180,220,0.08)] py-4 gap-1 shrink-0">
       <button
         onClick={() => setCollapsed(false)}
         className="flex items-center justify-center w-9 h-9 rounded-xl text-slate-500 hover:text-slate-200 hover:bg-white/[0.05] transition-colors duration-150 bg-transparent border-none cursor-pointer mb-1"
@@ -137,7 +137,7 @@ export default function Sidebar() {
               onClick={() => handleSelectConversation(chat)}
               title={chat.title}
               className={`flex items-center justify-center w-9 h-9 rounded-xl transition-colors duration-150 border-none cursor-pointer
-                ${isActive ? "bg-indigo-500/15 text-indigo-400" : "bg-transparent text-slate-500 hover:bg-white/[0.05] hover:text-slate-300"}`}
+                ${isActive ? "bg-[rgba(20,180,220,0.12)] text-[#14b4dc]" : "bg-transparent text-slate-500 hover:bg-[#132335] hover:text-slate-300"}`}
             >
               <MessageSquare size={15} />
             </button>
@@ -149,7 +149,7 @@ export default function Sidebar() {
         {userData && (
           <div className="relative">
             {userData.avatar
-              ? <img src={userData.avatar} alt={userData.name} className="w-8 h-8 rounded-[8px] object-cover border-2 border-indigo-500/25" />
+              ? <img src={userData.avatar} alt={userData.name} className="w-8 h-8 rounded-[8px] object-cover border-2 border-[#14b4dc]/25" />
               : <div className="w-8 h-8 rounded-[8px] bg-white/[0.06] flex items-center justify-center"><User size={14} className="text-slate-400" /></div>
             }
             <span className="absolute -bottom-px -right-px w-2 h-2 bg-green-500 rounded-full border-[1.5px] border-[#0d0f14] block" />
@@ -197,19 +197,13 @@ export default function Sidebar() {
           </span>
         )}
 
-        <button
-          onClick={handleCreateConversation}
-          className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/[0.05] transition-colors duration-150 bg-transparent border-none cursor-pointer"
-        >
-          <PenSquare size={14} />
-        </button>
       </div>
 
       {/* New Chat */}
       <div className="px-4 pt-4 pb-1">
         <button
           onClick={handleCreateConversation}
-          className="w-full flex items-center justify-center gap-2 text-sm font-medium text-white bg-gradient-to-br from-indigo-500 to-violet-700 rounded-xl py-[10px] border-none cursor-pointer hover:opacity-90 transition-opacity duration-150"
+          className="w-full flex items-center justify-center gap-2 text-sm font-medium text-white bg-gradient-to-br from-[#14b4dc] to-[#0d9488] rounded-xl py-[10px] border-none cursor-pointer hover:opacity-90 transition-opacity duration-150"
         >
           <Plus size={15} />
           New Chat
@@ -247,12 +241,12 @@ export default function Sidebar() {
               onMouseEnter={() => setHovered(chat._id)}
               onMouseLeave={() => setHovered(null)}
               className={`group relative flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-[10px] border transition-colors duration-150
-                ${isActive ? "bg-indigo-500/10 border-indigo-500/[0.18]"
-                : isHov   ? "bg-white/[0.05] border-transparent"
+                ${isActive ? "bg-[rgba(20,180,220,0.08)] border-[rgba(20,180,220,0.15)]"
+                : isHov   ? "bg-[#132335] border-transparent"
                 :            "bg-transparent border-transparent"}`}
             >
               <div className={`flex items-center justify-center shrink-0 w-[28px] h-[28px] rounded-lg transition-colors duration-150
-                ${isActive ? "bg-indigo-500/15 text-indigo-400" : "bg-white/[0.05] text-slate-500"}`}>
+                ${isActive ? "bg-[rgba(20,180,220,0.15)] text-[#14b4dc]" : "bg-white/[0.05] text-slate-500"}`}>
                 <MessageSquare size={13} />
               </div>
               
@@ -266,7 +260,7 @@ export default function Sidebar() {
                       if (e.key === "Enter") handleRenameSubmit(chat._id);
                       if (e.key === "Escape") setEditingChatId(null);
                     }}
-                    className="bg-white/[0.06] border-none text-[13px] font-medium text-slate-100 px-2 py-1 rounded-lg outline-none w-full ring-1 ring-white/10 focus:ring-indigo-500/40 transition-all"
+                    className="bg-white/[0.06] border-none text-[13px] font-medium text-slate-100 px-2 py-1 rounded-lg outline-none w-full ring-1 ring-white/10 focus:ring-[#14b4dc]/40 transition-all"
                     autoFocus
                     onClick={(e) => e.stopPropagation()}
                   />
@@ -276,7 +270,7 @@ export default function Sidebar() {
                       {chat.title}
                     </p>
                     {chat.isPinned && (
-                      <Pin size={10} className="text-indigo-400 shrink-0 rotate-45" />
+                      <Pin size={10} className="text-[#14b4dc] shrink-0 rotate-45" />
                     )}
                   </div>
                 )}
@@ -297,7 +291,7 @@ export default function Sidebar() {
               {activeMenu === chat._id && (
                 <div
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute right-2 top-9 z-50 w-36 bg-[#161821] border border-white/[0.08] rounded-xl py-1.5 shadow-xl"
+                  className="absolute right-2 top-9 z-50 w-36 bg-[#0f1e2e] border border-[rgba(20,180,220,0.12)] rounded-xl py-1.5 shadow-xl"
                 >
                   <button
                     onClick={() => handleTogglePin(chat)}
@@ -361,7 +355,7 @@ export default function Sidebar() {
     <img
       src={userData.avatar}
       alt={userData.name}
-      className="w-9 h-9 rounded-[10px] object-cover border-2 border-indigo-500/25"
+      className="w-9 h-9 rounded-[10px] object-cover border-2 border-[#14b4dc]/25"
       onError={() => setImageError(true)}
     />
   )
@@ -403,7 +397,7 @@ export default function Sidebar() {
       {/* ── Mobile hamburger ── */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-3.5 left-4 z-50 flex items-center justify-center w-8 h-8 rounded-lg bg-[#0d0f14] border border-white/[0.06] text-slate-400 hover:text-slate-200 transition-colors duration-150 cursor-pointer"
+        className="lg:hidden fixed top-3.5 left-4 z-50 flex items-center justify-center w-8 h-8 rounded-lg bg-[#0b1621] border border-[rgba(20,180,220,0.1)] text-slate-400 hover:text-slate-200 transition-colors duration-150 cursor-pointer"
       >
         <Menu size={16} />
       </button>
@@ -420,7 +414,7 @@ export default function Sidebar() {
       <div className={`
         fixed lg:static inset-y-0 left-0 z-50
         w-[270px] h-screen shrink-0
-        bg-[#0d0f14] border-r border-white/[0.06]
+        bg-[#0b1621] border-r border-[rgba(20,180,220,0.08)]
         transition-transform duration-250
         ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>

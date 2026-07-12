@@ -13,3 +13,7 @@ generated_images/
 # Do not ignore .env.example files
 !*.env.example
 !.env.example
+
+# Agent configs
+.agents/
+AGENT.md

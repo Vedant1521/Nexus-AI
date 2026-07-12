@@ -1,1 +1,57 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Outfit:wght@300;400;500;600;700&display=swap");
+
+/* ── Deep Ocean Design Tokens ── */
+:root {
+  --bg-base:       #03070c;
+  --bg-surface:    #07111a;
+  --bg-elevated:   #0d1d2b;
+  --bg-hover:      #12283a;
+
+  --border:        rgba(20, 180, 220, 0.08);
+  --border-strong: rgba(20, 180, 220, 0.18);
+
+  --accent:        #14b4dc;
+  --accent-dim:    rgba(20, 180, 220, 0.12);
+  --accent-glow:   rgba(20, 180, 220, 0.22);
+  --accent-2:      #0d9488;
+}
+
+/* Custom premium classes */
+.font-syncopate {
+  font-family: 'Syncopate', sans-serif;
+}
+
+.font-outfit {
+  font-family: 'Outfit', sans-serif;
+}
+
+@keyframes slow-pan {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.glowing-mesh {
+  background: radial-gradient(circle at 10% 20%, rgba(20, 180, 220, 0.06) 0%, transparent 40%),
+              radial-gradient(circle at 90% 80%, rgba(13, 148, 136, 0.05) 0%, transparent 40%),
+              #03070c;
+  background-size: 200% 200%;
+  animation: slow-pan 20s ease infinite;
+}
+
+/* Glassmorphism card */
+.glass-panel {
+  background: rgba(7, 17, 26, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(20, 180, 220, 0.12);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6),
+              inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}

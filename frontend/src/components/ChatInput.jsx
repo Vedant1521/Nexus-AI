@@ -273,7 +273,7 @@ catch(error){
   };
 
   return (
-   <div className="w-full overflow-hidden px-3 md:px-5 py-4 border-t border-white/[0.06] bg-[#0d0f14]">
+   <div className="w-full overflow-hidden px-3 md:px-5 py-4 border-t border-[rgba(20,180,220,0.08)] bg-[#060d14]">
       <div className="flex flex-col gap-2 bg-white/[0.03] border border-white/[0.07] rounded-2xl px-4 pt-3.5 pb-3">
 
 
@@ -305,7 +305,7 @@ catch(error){
 
             ${
               isActive
-                ? "bg-gradient-to-r from-indigo-500 to-violet-600 text-white border-transparent shadow-[0_1px_8px_rgba(99,102,241,.35)]"
+                ? "bg-gradient-to-r from-[#14b4dc] to-[#0d9488] text-white border-transparent shadow-[0_1px_8px_rgba(20,180,220,.35)]"
                 : "bg-white/[0.03] text-slate-400 border-white/[0.06] hover:bg-white/[0.07]"
             }
           `}
@@ -549,9 +549,9 @@ isListening
             disabled={!isLoading && !value.trim()}
             className={`flex items-center justify-center w-8 h-8 rounded-lg border-none cursor-pointer transition-all duration-150
               ${isLoading
-                ? "bg-white text-[#0d0f14] hover:bg-slate-200"
+                ? "bg-white text-[#060d14] hover:bg-slate-200"
                 : value.trim()
-                ? "bg-gradient-to-br from-indigo-500 to-violet-700 hover:opacity-90 text-white"
+                ? "bg-gradient-to-br from-[#14b4dc] to-[#0d9488] hover:opacity-90 text-white"
                 : "bg-white/[0.05] text-slate-600 cursor-not-allowed"
               }`}
           >

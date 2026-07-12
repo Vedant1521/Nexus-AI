@@ -103,7 +103,7 @@ ${htmlFile?.content || ""}
 
   /* ── Shared code panel content ── */
   const PanelContent = ({ onClose }) => (
-    <div className="flex flex-col h-full bg-[#0d0f14]">
+    <div className="flex flex-col h-full bg-[#0b1621]">
 
       {/* Header */}
       <div className="h-14 px-4 border-b border-white/[0.06] flex items-center gap-3 shrink-0">
@@ -115,8 +115,8 @@ ${htmlFile?.content || ""}
         </button>
 
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/10 border border-indigo-500/20 shrink-0">
-            <FiCode className="text-indigo-400" size={12} />
+          <div className="flex items-center justify-center w-6 h-6 rounded-md bg-[#14b4dc]/10 border border-[#14b4dc]/20 shrink-0">
+            <FiCode className="text-[#14b4dc]" size={12} />
           </div>
           <h2 className="text-[13px] font-medium text-slate-200 truncate flex-1">{artifact.title}</h2>
 
@@ -138,7 +138,7 @@ ${htmlFile?.content || ""}
               {versionMenuOpen && (
                 <div 
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute right-0 top-9 z-50 w-56 bg-[#161821] border border-white/[0.08] rounded-xl py-1.5 shadow-xl max-h-60 overflow-y-auto"
+                  className="absolute right-0 top-9 z-50 w-56 bg-[#0f1e2e] border border-[rgba(20,180,220,0.12)] rounded-xl py-1.5 shadow-xl max-h-60 overflow-y-auto"
                 >
                   {allArtifactVersions.map((ver, idx) => (
                     <button
@@ -148,7 +148,7 @@ ${htmlFile?.content || ""}
                         setVersionMenuOpen(false);
                       }}
                       className={`w-full flex flex-col px-3.5 py-2 text-left text-xs font-medium border-none bg-transparent cursor-pointer transition-all hover:bg-white/[0.04]
-                        ${idx === selectedVersionIndex ? "text-indigo-400 bg-indigo-500/5" : "text-slate-300 hover:text-white"}`}
+                        ${idx === selectedVersionIndex ? "text-[#14b4dc] bg-[#14b4dc]/5" : "text-slate-300 hover:text-white"}`}
                     >
                       <span className="font-bold flex items-center gap-1">
                         Version {idx + 1}
@@ -170,7 +170,7 @@ ${htmlFile?.content || ""}
           {selectedVersionIndex < allArtifactVersions.length - 1 && (
             <button
               onClick={handleRestoreVersion}
-              className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/15 rounded-lg transition-colors cursor-pointer shrink-0"
+              className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold text-[#14b4dc] hover:text-[#22c0e8] bg-[#14b4dc]/10 border border-[#14b4dc]/20 hover:bg-[#14b4dc]/15 rounded-lg transition-colors cursor-pointer shrink-0"
               title="Restore this version as latest"
             >
               <RotateCcw size={12} />
@@ -184,7 +184,7 @@ ${htmlFile?.content || ""}
               onClick={() => setShowDiff(!showDiff)}
               className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg transition-all border shrink-0 cursor-pointer
                 ${showDiff 
-                  ? "bg-indigo-500 text-white border-transparent shadow-[0_1px_8px_rgba(99,102,241,0.3)]" 
+                  ? "bg-gradient-to-br from-[#14b4dc] to-[#0d9488] text-white border-transparent shadow-[0_1px_8px_rgba(20,180,220,0.25)]" 
                   : "bg-transparent text-slate-400 border-white/[0.06] hover:bg-white/[0.05] hover:text-slate-200"
                 }`}
               title="Toggle side-by-side diff view"
@@ -212,7 +212,7 @@ ${htmlFile?.content || ""}
                   setTab("code");
                 }}
                 className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors duration-150
-                  ${tab === "code" ? "bg-indigo-500 text-white" : "text-slate-500 hover:text-slate-200"}`}
+                  ${tab === "code" ? "bg-gradient-to-br from-[#14b4dc] to-[#0d9488] text-white" : "text-slate-500 hover:text-slate-200"}`}
               >
                 <Code2 size={11} /> Code
               </button>
@@ -222,7 +222,7 @@ ${htmlFile?.content || ""}
                   setShowDiff(false); // Disable diff on preview
                 }}
                 className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors duration-150
-                  ${tab === "preview" ? "bg-indigo-500 text-white" : "text-slate-500 hover:text-slate-200"}`}
+                  ${tab === "preview" ? "bg-gradient-to-br from-[#14b4dc] to-[#0d9488] text-white" : "text-slate-500 hover:text-slate-200"}`}
               >
                 <Eye size={11} /> Preview
               </button>
@@ -246,11 +246,11 @@ ${htmlFile?.content || ""}
                 key={f.name}
                 onClick={() => setActiveFile(index)}
                 className={`px-4 py-2.5 text-[11px] font-medium whitespace-nowrap transition-colors duration-150 border-r border-white/[0.05] relative cursor-pointer bg-transparent
-                  ${activeFile === index ? "text-indigo-400" : "text-slate-500 hover:text-slate-300"}`}
+                  ${activeFile === index ? "text-[#14b4dc]" : "text-slate-500 hover:text-slate-300"}`}
               >
                 {f.name}
                 {activeFile === index && (
-                  <motion.div layoutId="filetab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-indigo-500 rounded-t-full" />
+                  <motion.div layoutId="filetab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#14b4dc] to-[#0d9488] rounded-t-full" />
                 )}
               </button>
             ))}
@@ -304,7 +304,7 @@ ${htmlFile?.content || ""}
     <>
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed bottom-24 right-4 z-40 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[12px] font-medium shadow-lg shadow-indigo-500/20 border-none cursor-pointer transition-colors duration-150"
+        className="lg:hidden fixed bottom-24 right-4 z-40 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-br from-[#14b4dc] to-[#0d9488] text-white text-[12px] font-medium shadow-lg shadow-[rgba(20,180,220,0.2)] border-none cursor-pointer transition-colors duration-150"
       >
         <FiCode size={13} />
         View Code
@@ -327,7 +327,7 @@ ${htmlFile?.content || ""}
             <PanelContent />
           </motion.div>
         ) : (
-          <motion.div key="collapsed" initial={{ width: 0, opacity: 0 }} animate={{ width: 48, opacity: 1 }} exit={{ width: 0, opacity: 0 }} transition={{ duration: 0.22, ease: "easeInOut" }} className="hidden lg:flex h-full border-l border-white/[0.06] bg-[#0d0f14] flex-col items-center py-4 gap-3 shrink-0">
+          <motion.div key="collapsed" initial={{ width: 0, opacity: 0 }} animate={{ width: 48, opacity: 1 }} exit={{ width: 0, opacity: 0 }} transition={{ duration: 0.22, ease: "easeInOut" }} className="hidden lg:flex h-full border-l border-[rgba(20,180,220,0.08)] bg-[#0b1621] flex-col items-center py-4 gap-3 shrink-0">
             <button onClick={() => setCollapsed(false)} className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/[0.05] transition-colors duration-150 bg-transparent border-none cursor-pointer">
               <PanelRightOpen size={15} />
             </button>
