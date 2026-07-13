@@ -5,7 +5,8 @@ import { getMessages, deleteMessageApi } from "../features/message.api";
 import { sendPrompt } from "../features/agent.api";
 import { setArtifacts, setMessages, setIsLoading, removeMessage, updateMessage } from "../redux/message.slice";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { ArrowDown } from "lucide-react";
 function NeuralPulse() {
   return (
     <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
@@ -84,25 +85,39 @@ function GeneratingIndicator() {
 
 export default function MessageList({ onSelectSuggestion }) {
 
+  const scrollRef = useRef(null);
   const bottomRef = useRef(null);
   const { messages, isLoading } = useSelector(state => state.message);
   const { selectedConversation } = useSelector(state => state.conversation);
   const dispatch = useDispatch();
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const isAutoScrollRef = useRef(true);
+
+  const scrollToBottom = useCallback(() => {
+    isAutoScrollRef.current = true;
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const isNearBottom = distanceFromBottom < 120;
+    isAutoScrollRef.current = isNearBottom;
+    setShowScrollBtn(!isNearBottom);
+  }, []);
 
   useEffect(() => {
-
-    requestAnimationFrame(() => {
-
-      bottomRef.current?.scrollIntoView({
-
-        behavior: "smooth",
-
-        block: "end"
-
+    if (isAutoScrollRef.current) {
+      requestAnimationFrame(() => {
+        bottomRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "end"
+        });
       });
-
-    });
-
+    }
   }, [messages.length, isLoading]);
 
   useEffect(() => {
@@ -173,7 +188,12 @@ if (latestArtifactMessage) {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="relative flex-1 overflow-hidden">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="nexus-scrollbar h-full overflow-y-auto px-6 py-6 space-y-5"
+      >
       {messages.length === 0 && !isLoading ? (
         <div className="h-full flex flex-col items-center justify-center gap-4 text-center">
           <div className="flex flex-col gap-1.5">
@@ -227,6 +247,23 @@ if (latestArtifactMessage) {
         </>
       )}
         <div ref={bottomRef} />
+      </div>
+
+      <AnimatePresence>
+        {showScrollBtn && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            onClick={scrollToBottom}
+            className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center justify-center w-10 h-10 rounded-full bg-[#0f1e2e] border border-[rgba(20,180,220,0.2)] text-slate-300 hover:text-[#14b4dc] hover:border-[#14b4dc]/40 hover:bg-[#14b4dc]/5 shadow-lg shadow-black/30 cursor-pointer transition-colors duration-150"
+            title="Scroll to bottom"
+          >
+            <ArrowDown size={16} />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

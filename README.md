@@ -122,6 +122,8 @@ graph TB
 | 🔄 **Auth Loading Gate** | Splash-screen loading state during session validation to eliminate login-page flash on refresh |
 | 🛑 **401 Auto-Logout** | Axios response interceptor that automatically clears session and redirects to login on 401 responses |
 | 📋 **Message Actions** | Per-message icon-only hover toolbar with Copy, Regenerate (re-call agent with preceding user prompt), and Delete with two-click confirmation (persisted to backend) |
+| ⬇️ **Scroll-to-Bottom** | Floating button that appears when the user scrolls up in a long conversation, with smooth-scroll back to latest messages and smart auto-scroll pausing |
+| 🎛️ **Custom Scrollbar** | Thin 6px Antigravity-style scrollbar with cyan-tinted thumb that brightens on hover/active, styled via `nexus-scrollbar` CSS class |
 
 ---
 

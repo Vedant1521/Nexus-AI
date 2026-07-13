@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Editor, { DiffEditor } from "@monaco-editor/react";
 import { FiCode } from "react-icons/fi";
@@ -20,9 +20,12 @@ export default function ArtifactPanel() {
   const { messages } = useSelector(state => state.message);
   const { selectedConversation } = useSelector(state => state.conversation);
 
-  const allArtifactVersions = messages
-    .filter(msg => msg.role === "assistant" && msg.artifacts && msg.artifacts.length > 0)
-    .flatMap(msg => msg.artifacts);
+  const allArtifactVersions = useMemo(
+    () => messages
+      .filter(msg => msg.role === "assistant" && msg.artifacts && msg.artifacts.length > 0)
+      .flatMap(msg => msg.artifacts),
+    [messages]
+  );
 
   const [selectedVersionIndex, setSelectedVersionIndex] = useState(-1);
   const [showDiff, setShowDiff] = useState(false);
