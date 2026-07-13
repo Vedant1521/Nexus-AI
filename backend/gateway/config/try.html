@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NexusAI API - Try It Out</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg-base: #03070c;
+  --bg-surface: #0b1621;
+  --bg-elevated: #0f1e2e;
+  --bg-hover: #132335;
+  --border: rgba(20,180,220,0.08);
+  --border-strong: rgba(20,180,220,0.15);
+  --accent: #14b4dc;
+  --accent-dim: rgba(20,180,220,0.1);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-faint: #475569;
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --code-bg: #03070c;
+  --shadow: rgba(0,0,0,0.25);
+}
+[data-theme="light"] {
+  --bg-base: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --bg-hover: #e2e8f0;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.15);
+  --accent: #0891b2;
+  --accent-dim: rgba(8,145,178,0.08);
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --green: #16a34a;
+  --blue: #2563eb;
+  --purple: #9333ea;
+  --red: #dc2626;
+  --amber: #d97706;
+  --code-bg: #f1f5f9;
+  --shadow: rgba(0,0,0,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-base); color: var(--text-primary); font-size: 14px; line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* ── Navbar ── */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px; background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 24px;
+}
+.navbar-brand {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 700; font-size: 15px;
+  color: var(--accent); letter-spacing: -0.4px;
+  display: flex; align-items: center; gap: 10px;
+}
+.navbar-brand::before {
+  content: ''; width: 24px; height: 24px; border-radius: 7px;
+  background: linear-gradient(135deg, var(--accent), #0d9488);
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(20,180,220,0.25);
+}
+.navbar-brand span { color: var(--text-muted); font-weight: 400; font-size: 12px; letter-spacing: 0.2px; }
+.navbar-links { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.navbar-links a {
+  color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500;
+  padding: 7px 14px; border-radius: 8px; transition: all 0.15s;
+  border: 1px solid transparent;
+}
+.navbar-links a:hover { color: var(--accent); background: var(--accent-dim); }
+.navbar-links a.primary { color: var(--accent); border-color: var(--border-strong); }
+.navbar-links a.primary:hover { background: var(--accent-dim); }
+
+/* ── Layout ── */
+.layout { display: flex; padding-top: 56px; min-height: 100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 264px; height: calc(100vh - 56px); position: sticky; top: 56px;
+  background: var(--bg-surface); border-right: 1px solid var(--border);
+  overflow-y: auto; flex-shrink: 0; padding: 16px 0;
+}
+.sidebar-search { padding: 0 16px 14px; position: relative; }
+.sidebar-search input {
+  width: 100%; background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px 8px 32px; color: var(--text-primary);
+  font-size: 12px; font-family: 'Inter', sans-serif; outline: none; transition: all 0.15s;
+}
+.sidebar-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.sidebar-search input::placeholder { color: var(--text-faint); }
+.sidebar-search .search-icon {
+  position: absolute; left: 28px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; color: var(--text-faint); pointer-events: none;
+}
+.sidebar-section { margin-bottom: 20px; }
+.sidebar-heading {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-faint);
+  padding: 0 20px 8px; cursor: pointer; user-select: none;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: color 0.12s;
+}
+.sidebar-heading:hover { color: var(--text-secondary); }
+.sidebar-heading .chevron { width: 12px; height: 12px; transition: transform 0.2s; flex-shrink: 0; opacity: 0.5; }
+.sidebar-heading.collapsed .chevron { transform: rotate(-90deg); }
+.sidebar-heading .tag-count { font-size: 10px; color: var(--text-faint); font-weight: 500; }
+.sidebar-section.collapsed .sidebar-link { display: none; }
+.sidebar-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 20px; text-decoration: none; transition: all 0.12s;
+  border-left: 2px solid transparent;
+}
+.sidebar-link:hover { background: var(--bg-elevated); }
+.sidebar-link.active { background: var(--accent-dim); border-left-color: var(--accent); }
+.sidebar-link .method-badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700;
+  text-transform: uppercase; width: 34px; text-align: center; flex-shrink: 0;
+  border-radius: 3px; padding: 2px 0;
+}
+.sidebar-link .endpoint-path {
+  font-size: 12px; color: var(--text-secondary); font-weight: 450;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sidebar-link.active .endpoint-path { color: var(--accent); font-weight: 500; }
+
+/* ── Main content ── */
+.main { flex: 1; min-width: 0; max-width: 620px; padding: 40px 40px 120px; }
+.main-intro { margin-bottom: 48px; }
+.main-intro h1 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 28px; font-weight: 700;
+  color: var(--text-primary); letter-spacing: -0.7px; margin-bottom: 14px;
+  line-height: 1.2;
+}
+.main-intro p { color: var(--text-secondary); font-size: 14px; line-height: 1.7; }
+.tag-group { margin-bottom: 48px; }
+.tag-header {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 20px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.5px;
+  padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  line-height: 1.3;
+}
+.tag-desc { color: var(--text-muted); font-size: 12px; margin-bottom: 24px; }
+.endpoint { margin-bottom: 40px; scroll-margin-top: 72px; }
+.endpoint-header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.endpoint-method {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 6px;
+  letter-spacing: 0.5px; flex-shrink: 0;
+}
+.endpoint-path {
+  font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;
+  color: var(--text-primary); word-break: break-all;
+}
+.endpoint-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; }
+.endpoint-desc { color: var(--text-secondary); font-size: 13px; line-height: 1.7; margin-bottom: 20px; white-space: pre-wrap; }
+.section-label {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-faint);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.params-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.params-table th {
+  text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+}
+.params-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; }
+.params-table .param-name { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 500; }
+.params-table .param-type { color: var(--purple); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.params-table .param-required { color: var(--red); font-size: 10px; font-weight: 700; }
+.params-table .param-desc { color: var(--text-secondary); }
+.sec-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 6px; margin-bottom: 14px;
+}
+.sec-badge.locked { color: var(--amber); border-color: rgba(245,158,11,0.15); }
+.sec-badge.open { color: var(--green); border-color: rgba(34,197,94,0.15); }
+
+/* ── Right panel (interactive) ── */
+.right-panel {
+  width: 400px; flex-shrink: 0; position: sticky; top: 56px;
+  height: calc(100vh - 56px); overflow-y: auto;
+  background: var(--bg-surface); border-left: 1px solid var(--border);
+  padding: 28px 22px;
+}
+.right-panel-label {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-faint);
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.right-panel-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.try-header { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+.try-method {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; padding: 4px 8px; border-radius: 5px;
+  letter-spacing: 0.5px; flex-shrink: 0;
+}
+.try-path {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500;
+  color: var(--text-secondary); word-break: break-all;
+}
+
+/* ── Input fields ── */
+.input-group { margin-bottom: 16px; }
+.input-label {
+  font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px;
+  display: flex; align-items: center; gap: 6px;
+}
+.input-label .req { color: var(--red); font-size: 10px; }
+.input-label .type { color: var(--purple); font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 400; }
+.try-input {
+  width: 100%; background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 7px; padding: 8px 11px; color: var(--text-primary);
+  font-size: 12.5px; font-family: 'JetBrains Mono', monospace; outline: none;
+  transition: all 0.15s;
+}
+.try-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.try-input::placeholder { color: var(--text-faint); }
+.try-textarea {
+  width: 100%; background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 7px; padding: 10px 12px; color: var(--text-primary);
+  font-size: 12px; font-family: 'JetBrains Mono', monospace; outline: none;
+  transition: all 0.15s; min-height: 140px; resize: vertical; line-height: 1.6;
+}
+.try-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.try-select {
+  width: 100%; background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 7px; padding: 8px 11px; color: var(--text-primary);
+  font-size: 12.5px; outline: none; cursor: pointer;
+}
+.try-select:focus { border-color: var(--accent); }
+.try-select option { background: var(--bg-elevated); color: var(--text-primary); }
+
+/* ── Execute button ── */
+.execute-btn {
+  width: 100%; background: var(--accent); border: none; border-radius: 8px;
+  padding: 11px 0; color: var(--bg-base); font-weight: 700; font-size: 13px;
+  cursor: pointer; transition: all 0.15s; margin-top: 8px;
+  font-family: 'Inter', sans-serif; letter-spacing: 0.3px;
+  box-shadow: 0 0 14px rgba(20,180,220,0.25);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.execute-btn:hover { background: #0ea5c0; box-shadow: 0 0 20px rgba(20,180,220,0.35); }
+.execute-btn:active { transform: scale(0.98); }
+.execute-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+.execute-btn .spinner {
+  width: 14px; height: 14px; border: 2px solid rgba(3,7,12,0.3);
+  border-top-color: var(--bg-base); border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Response ── */
+.response-section { margin-top: 24px; }
+.response-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700;
+  padding: 5px 12px; border-radius: 6px; margin-bottom: 12px;
+}
+.response-status.success { background: rgba(34,197,94,0.12); color: var(--green); }
+.response-status.error { background: rgba(239,68,68,0.12); color: var(--red); }
+.response-status.pending { background: rgba(245,158,11,0.12); color: var(--amber); }
+.response-time { font-size: 11px; color: var(--text-faint); margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; }
+.response-meta { margin-bottom: 10px; }
+.response-meta-row { display: flex; gap: 8px; padding: 4px 0; font-size: 11px; }
+.response-meta-key { color: var(--text-muted); min-width: 120px; font-family: 'JetBrains Mono', monospace; }
+.response-meta-val { color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; word-break: break-all; }
+.code-block {
+  background: var(--code-bg); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; margin-bottom: 20px;
+}
+.code-block-header {
+  padding: 8px 14px; background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.code-block-header .lang { font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 10px; }
+.copy-btn {
+  background: transparent; border: 1px solid var(--border); border-radius: 5px;
+  padding: 3px 8px; font-size: 10px; font-weight: 600; color: var(--text-muted);
+  cursor: pointer; transition: all 0.12s; display: flex; align-items: center; gap: 4px;
+  font-family: 'Inter', sans-serif;
+}
+.copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+.copy-btn.copied { color: var(--green); border-color: rgba(34,197,94,0.3); }
+.copy-btn svg { width: 11px; height: 11px; }
+.code-block pre {
+  padding: 14px; overflow-x: auto; font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; line-height: 1.6; color: var(--text-secondary);
+  max-height: 400px; overflow-y: auto;
+}
+.code-block pre .key { color: var(--accent); }
+.code-block pre .s { color: var(--green); }
+.code-block pre .n { color: var(--amber); }
+.code-block pre .k { color: var(--purple); }
+.no-response {
+  padding: 40px 20px; text-align: center; color: var(--text-faint); font-size: 13px;
+}
+
+/* ── Method colors ── */
+.m-get { background: rgba(59,130,246,0.12); color: var(--blue); }
+.m-post { background: rgba(34,197,94,0.12); color: var(--green); }
+.m-patch { background: rgba(168,85,247,0.12); color: var(--purple); }
+.m-delete { background: rgba(239,68,68,0.12); color: var(--red); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Skeleton ── */
+.skeleton-line { height: 12px; background: var(--bg-elevated); border-radius: 6px; margin-bottom: 12px; animation: shimmer 1.5s infinite; }
+.skeleton-line.short { width: 40%; } .skeleton-line.medium { width: 65%; } .skeleton-line.long { width: 85%; }
+@keyframes shimmer { 0% { opacity: 0.4; } 50% { opacity: 0.7; } 100% { opacity: 0.4; } }
+
+/* ── Mobile ── */
+@media (max-width: 1100px) { .right-panel { display: none; } }
+@media (max-width: 768px) { .sidebar { display: none; } .main { padding: 24px 20px 80px; max-width: 100%; } }
+
+/* ── Theme toggle ── */
+.theme-toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+  background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+  transition: all 0.15s; padding: 0;
+}
+.theme-toggle:hover { color: var(--accent); border-color: var(--border-strong); background: var(--accent-dim); }
+.theme-icon-light { display: none; }
+[data-theme="light"] .theme-icon-dark { display: none; }
+[data-theme="light"] .theme-icon-light { display: block; }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="navbar-brand">NexusAI <span>Try It Out</span></div>
+  <div class="navbar-links">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
+      <svg class="theme-icon-dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="theme-icon-light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <a href="/api/docs">&larr; Back to Docs</a>
+    <a href="/api/docs/json" class="primary">OpenAPI JSON</a>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div style="padding:16px"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div><div class="skeleton-line long"></div></div>
+  </aside>
+  <main class="main" id="main">
+    <div style="padding:40px"><div class="skeleton-line medium"></div><div class="skeleton-line long"></div><div class="skeleton-line short"></div></div>
+  </main>
+  <aside class="right-panel" id="rightPanel"></aside>
+</div>
+
+<script>
+const METHOD_COLORS = { get: 'm-get', post: 'm-post', patch: 'm-patch', delete: 'm-delete' };
+let SPEC = null;
+let ENDPOINTS = [];
+let currentEndpoint = null;
+
+const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+async function init() {
+  try {
+    const res = await fetch('/api/docs/json');
+    SPEC = await res.json();
+    buildEndpoints();
+    renderSidebar();
+    renderMain();
+    const firstEp = ENDPOINTS[0]?.endpoints[0];
+    if (firstEp) selectEndpoint(firstEp);
+    setupScrollTracking();
+  } catch (e) {
+    document.getElementById('main').innerHTML = '<div style="padding:60px;text-align:center;color:#64748b">Failed to load API spec.</div>';
+  }
+}
+
+function buildEndpoints() {
+  const tagMap = {};
+  (SPEC.tags || []).forEach(t => { tagMap[t.name] = { ...t, endpoints: [] }; });
+  for (const [path, methods] of Object.entries(SPEC.paths || {})) {
+    for (const [method, def] of Object.entries(methods)) {
+      if (!['get','post','patch','put','delete'].includes(method)) continue;
+      const tag = (def.tags && def.tags[0]) || 'Default';
+      if (!tagMap[tag]) tagMap[tag] = { name: tag, endpoints: [] };
+      tagMap[tag].endpoints.push({ path, method, def });
+    }
+  }
+  ENDPOINTS = Object.values(tagMap).filter(t => t.endpoints.length > 0);
+}
+
+// ── Sidebar ──
+function renderSidebar() {
+  const el = document.getElementById('sidebar');
+  let html = `<div class="sidebar-search">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="sidebarSearch" placeholder="Search endpoints..." />
+  </div>`;
+  for (const tag of ENDPOINTS) {
+    html += `<div class="sidebar-section" data-tag="${tag.name}">
+      <div class="sidebar-heading" onclick="toggleTagCollapse(this)">
+        <span>${tag.name}</span>
+        <span style="display:flex;align-items:center;gap:6px"><span class="tag-count">${tag.endpoints.length}</span><svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+      </div>`;
+    for (const ep of tag.endpoints) {
+      const id = endpointId(ep.path, ep.method);
+      html += `<a href="#${id}" class="sidebar-link" data-id="${id}" data-search="${(ep.path + ' ' + (ep.def.summary||'')).toLowerCase()}">
+        <span class="method-badge ${METHOD_COLORS[ep.method]}">${ep.method}</span>
+        <span class="endpoint-path">${ep.path.replace('/api/','')}</span>
+      </a>`;
+    }
+    html += `</div>`;
+  }
+  el.innerHTML = html;
+  document.getElementById('sidebarSearch').addEventListener('input', e => filterSidebar(e.target.value));
+}
+
+function filterSidebar(query) {
+  const q = query.toLowerCase().trim();
+  let anyVisible = false;
+  document.querySelectorAll('.sidebar-section').forEach(section => {
+    let visible = 0;
+    section.querySelectorAll('.sidebar-link').forEach(link => {
+      const match = !q || (link.dataset.search || '').includes(q);
+      link.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    section.style.display = visible > 0 ? '' : 'none';
+    anyVisible = anyVisible || visible > 0;
+  });
+}
+
+window.toggleTagCollapse = function(el) {
+  const s = el.closest('.sidebar-section');
+  s.classList.toggle('collapsed');
+  el.classList.toggle('collapsed');
+};
+
+// ── Main ──
+function renderMain() {
+  const el = document.getElementById('main');
+  let html = `<div class="main-intro"><h1>${SPEC.info.title} — Try It Out</h1><p>Select an endpoint from the sidebar, fill in the parameters in the right panel, and click Execute to fire a live request.</p></div>`;
+  for (const tag of ENDPOINTS) {
+    html += `<div class="tag-group"><h2 class="tag-header">${tag.name}</h2><p class="tag-desc">${tag.description || ''}</p>`;
+    for (const ep of tag.endpoints) html += renderEndpoint(ep);
+    html += `</div>`;
+  }
+  el.innerHTML = html;
+}
+
+function renderEndpoint(ep) {
+  const id = endpointId(ep.path, ep.method);
+  const def = ep.def;
+  const sec = def.security;
+  const secBadge = sec ? `<div class="sec-badge locked">&#128274; Requires session cookie</div>` : `<div class="sec-badge open">&#128275; No auth required</div>`;
+  let html = `<div class="endpoint" id="${id}">
+    <div class="endpoint-header"><span class="endpoint-method ${METHOD_COLORS[ep.method]}">${ep.method}</span><span class="endpoint-path">${ep.path}</span></div>
+    <div class="endpoint-title">${def.summary || ''}</div>${secBadge}
+    ${def.description ? `<div class="endpoint-desc">${def.description}</div>` : ''}`;
+  const pathParams = (def.parameters || []).filter(p => p.in === 'path');
+  if (pathParams.length) html += renderParams('Path Parameters', pathParams);
+  const queryParams = (def.parameters || []).filter(p => p.in === 'query');
+  if (queryParams.length) html += renderParams('Query Parameters', queryParams);
+  if (def.requestBody) html += renderRequestBodySchema(def.requestBody);
+  html += renderResponses(def.responses);
+  html += `</div>`;
+  return html;
+}
+
+function renderParams(label, params) {
+  let rows = '';
+  for (const p of params) {
+    const req = p.required ? '<span class="param-required">*required</span>' : '';
+    rows += `<tr><td class="param-name">${p.name} ${req}</td><td class="param-type">${p.schema?.type || 'string'}</td><td class="param-desc">${p.description || ''}</td></tr>`;
+  }
+  return `<div class="section-label">${label}</div><table class="params-table"><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderRequestBodySchema(body) {
+  const content = body.content;
+  if (!content) return '';
+  let html = `<div class="section-label">Request Body Schema</div>`;
+  for (const type of Object.keys(content)) {
+    const schema = content[type].schema;
+    const isMultipart = type.includes('multipart');
+    html += `<div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:12px">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--accent);margin-bottom:8px">${isMultipart ? 'multipart/form-data' : type}</div>
+      ${renderSchemaInline(schema)}
+    </div>`;
+  }
+  return html;
+}
+
+function renderSchemaInline(schema) {
+  if (!schema) return '<div style="color:var(--text-muted);font-size:12px">No schema</div>';
+  if (schema.$ref) { const r = schema.$ref.split('/').pop(); return `<div style="color:var(--text-muted);font-size:12px">Schema: ${r}</div>`; }
+  if (schema.properties) {
+    let rows = '';
+    const req = schema.required || [];
+    for (const [name, prop] of Object.entries(schema.properties)) {
+      const isReq = req.includes(name);
+      const type = prop.$ref ? prop.$ref.split('/').pop() : (prop.type || 'any');
+      const items = prop.items?.$ref ? `array[${prop.items.$ref.split('/').pop()}]` : prop.items ? `array[${prop.items.type}]` : '';
+      rows += `<div style="display:grid;grid-template-columns:120px 80px 1fr;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${name}${isReq?' *':''}</span>
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--purple)">${items||type}</span>
+        <span style="color:var(--text-secondary)">${prop.description||''}</span>
+      </div>`;
+    }
+    return rows;
+  }
+  return `<div style="color:var(--text-muted);font-size:12px">${schema.type || 'any'}</div>`;
+}
+
+function renderResponses(responses) {
+  let rows = '';
+  for (const [code, resp] of Object.entries(responses)) {
+    const cls = code.startsWith('2') ? 'response-code-2xx' : code.startsWith('4') ? 'response-code-4xx' : 'response-code-5xx';
+    rows += `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><span class="response-status ${cls}" style="font-size:11px;padding:3px 8px">${code}</span><span style="color:var(--text-secondary);font-size:12px">${resp.description||''}</span></div>`;
+  }
+  return `<div class="section-label">Expected Responses</div>${rows}`;
+}
+
+// ── Right panel: interactive try-it-out ──
+function selectEndpoint(ep) {
+  currentEndpoint = ep;
+  renderTryPanel(ep);
+}
+
+function renderTryPanel(ep) {
+  const el = document.getElementById('rightPanel');
+  const def = ep.def;
+  const pathParams = (def.parameters || []).filter(p => p.in === 'path');
+  const queryParams = (def.parameters || []).filter(p => p.in === 'query');
+  const hasJsonBody = def.requestBody?.content?.['application/json']?.schema;
+  const hasMultipart = def.requestBody?.content?.['multipart/form-data'];
+
+  let html = `<div class="right-panel-label">Try It Out</div>`;
+  html += `<div class="try-header"><span class="try-method ${METHOD_COLORS[ep.method]}">${ep.method}</span><span class="try-path">${ep.path}</span></div>`;
+  html += `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:18px">${def.summary || ''}</div>`;
+
+  // Path params
+  if (pathParams.length) {
+    html += `<div class="right-panel-label">Path Parameters</div>`;
+    for (const p of pathParams) {
+      const ex = p.schema?.example || p.schema?.enum?.[0] || '';
+      html += `<div class="input-group"><div class="input-label">${p.name} ${p.required?'<span class="req">*required</span>':''} <span class="type">${p.schema?.type||'string'}</span></div>
+        <input class="try-input" data-param-type="path" data-param-name="${p.name}" placeholder="${ex || 'value'}" value="${ex}" /></div>`;
+    }
+  }
+
+  // Query params
+  if (queryParams.length) {
+    html += `<div class="right-panel-label">Query Parameters</div>`;
+    for (const p of queryParams) {
+      const ex = p.schema?.example || '';
+      html += `<div class="input-group"><div class="input-label">${p.name} ${p.required?'<span class="req">*required</span>':''} <span class="type">${p.schema?.type||'string'}</span></div>
+        <input class="try-input" data-param-type="query" data-param-name="${p.name}" placeholder="${ex || 'value'}" value="${ex}" /></div>`;
+    }
+  }
+
+  // JSON body
+  if (hasJsonBody) {
+    const example = buildExample(hasJsonBody);
+    html += `<div class="right-panel-label">Request Body (JSON)</div>`;
+    html += `<div class="input-group"><textarea class="try-textarea" id="bodyInput" placeholder="Enter JSON...">${JSON.stringify(example, null, 2)}</textarea></div>`;
+  }
+
+  // Multipart
+  if (hasMultipart) {
+    const schema = def.requestBody.content['multipart/form-data'].schema;
+    html += `<div class="right-panel-label">Form Data</div>`;
+    for (const [name, prop] of Object.entries(schema?.properties || {})) {
+      if (prop.type === 'string' && prop.format === 'binary') {
+        html += `<div class="input-group"><div class="input-label">${name} <span class="type">file</span></div>
+          <input type="file" class="try-input" data-param-type="file" data-param-name="${name}" style="font-family:'Inter',sans-serif;padding:7px" /></div>`;
+      } else {
+        html += `<div class="input-group"><div class="input-label">${name} <span class="type">${prop.type||'string'}</span></div>
+          <input class="try-input" data-param-type="form" data-param-name="${name}" placeholder="value" /></div>`;
+      }
+    }
+  }
+
+  // Execute button
+  html += `<button class="execute-btn" id="executeBtn" onclick="executeRequest()"><span>Execute</span></button>`;
+
+  // Response section (empty initially)
+  html += `<div class="response-section" id="responseSection"><div class="no-response">Click Execute to send the request</div></div>`;
+
+  el.innerHTML = html;
+}
+
+async function executeRequest() {
+  if (!currentEndpoint) return;
+  const ep = currentEndpoint;
+  const def = ep.def;
+  const btn = document.getElementById('executeBtn');
+  const responseSection = document.getElementById('responseSection');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span><span>Executing...</span>';
+  responseSection.innerHTML = '<div class="no-response">Waiting for response...</div>';
+
+  try {
+    // Build URL with path params
+    let url = ep.path;
+    document.querySelectorAll('[data-param-type="path"]').forEach(input => {
+      url = url.replace(`{${input.dataset.paramName}}`, encodeURIComponent(input.value));
+    });
+
+    // Add query params
+    const queryParams = [];
+    document.querySelectorAll('[data-param-type="query"]').forEach(input => {
+      if (input.value) queryParams.push(`${input.dataset.paramName}=${encodeURIComponent(input.value)}`);
+    });
+    if (queryParams.length) url += `?${queryParams.join('&')}`;
+
+    // Build options
+    const options = { method: ep.method.toUpperCase(), credentials: 'include' };
+    const hasJsonBody = def.requestBody?.content?.['application/json']?.schema;
+    const hasMultipart = def.requestBody?.content?.['multipart/form-data'];
+
+    if (hasJsonBody) {
+      const bodyText = document.getElementById('bodyInput')?.value || '{}';
+      try { options.body = JSON.stringify(JSON.parse(bodyText)); } catch { options.body = bodyText; }
+      options.headers = { 'Content-Type': 'application/json' };
+    }
+
+    if (hasMultipart) {
+      const formData = new FormData();
+      document.querySelectorAll('[data-param-type="file"]').forEach(input => {
+        if (input.files[0]) formData.append(input.dataset.paramName, input.files[0]);
+      });
+      document.querySelectorAll('[data-param-type="form"]').forEach(input => {
+        if (input.value) formData.append(input.dataset.paramName, input.value);
+      });
+      options.body = formData;
+    }
+
+    // Execute
+    const startTime = performance.now();
+    const res = await fetch(url, options);
+    const elapsed = Math.round(performance.now() - startTime);
+
+    // Build response display
+    const statusClass = res.ok ? 'success' : res.status < 500 ? 'error' : 'error';
+    let responseHtml = `<div class="right-panel-label">Response</div>`;
+    responseHtml += `<div class="response-status ${statusClass}">${res.status} ${res.statusText}</div>`;
+    responseHtml += `<div class="response-time">${elapsed}ms</div>`;
+
+    // Headers
+    responseHtml += `<div class="response-meta">`;
+    const importantHeaders = ['content-type', 'content-length', 'set-cookie', 'date'];
+    for (const [key, val] of res.headers.entries()) {
+      if (importantHeaders.includes(key.toLowerCase())) {
+        responseHtml += `<div class="response-meta-row"><span class="response-meta-key">${key}:</span><span class="response-meta-val">${val.substring(0, 80)}</span></div>`;
+      }
+    }
+    responseHtml += `</div>`;
+
+    // Body
+    const contentType = res.headers.get('content-type') || '';
+    let bodyText = '';
+    if (contentType.includes('application/json')) {
+      const json = await res.json();
+      bodyText = JSON.stringify(json, null, 2);
+      responseHtml += `<div class="code-block"><div class="code-block-header"><span>Response Body</span><span style="display:flex;align-items:center;gap:8px"><span class="lang">json</span><button class="copy-btn" onclick="copyCode(this, ${JSON.stringify(bodyText).replace(/"/g,'&quot;')})">${COPY_ICON}Copy</button></span></div><pre>${highlightJson(bodyText)}</pre></div>`;
+    } else {
+      bodyText = await res.text();
+      const lang = contentType.includes('html') ? 'html' : 'text';
+      responseHtml += `<div class="code-block"><div class="code-block-header"><span>Response Body</span><span style="display:flex;align-items:center;gap:8px"><span class="lang">${lang}</span><button class="copy-btn" onclick="copyCode(this, ${JSON.stringify(bodyText).replace(/"/g,'&quot;')})">${COPY_ICON}Copy</button></span></div><pre>${escapeHtml(bodyText).substring(0, 5000)}</pre></div>`;
+    }
+
+    responseSection.innerHTML = responseHtml;
+  } catch (err) {
+    responseSection.innerHTML = `<div class="right-panel-label">Response</div><div class="response-status error">Network Error</div><div class="code-block"><div class="code-block-header"><span>Error</span></div><pre>${escapeHtml(err.message)}</pre></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>Execute</span>';
+  }
+}
+
+// ── Helpers ──
+function buildExample(schema) {
+  if (!schema) return null;
+  if (schema.$ref) { const r = schema.$ref.split('/').pop(); return buildExample(SPEC.components?.schemas?.[r]); }
+  if (schema.example !== undefined) return schema.example;
+  if (schema.type === 'object' || schema.properties) {
+    const obj = {};
+    for (const [name, prop] of Object.entries(schema.properties || {})) obj[name] = buildExample(prop);
+    return obj;
+  }
+  if (schema.type === 'array') return [buildExample(schema.items)];
+  if (schema.type === 'string') return schema.example || 'string';
+  if (schema.type === 'number' || schema.type === 'integer') return schema.example || 0;
+  if (schema.type === 'boolean') return schema.example || false;
+  return null;
+}
+
+function highlightJson(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+    .replace(/: "([^"]*)"/g, ': <span class="s">"$1"</span>')
+    .replace(/: (\d+)/g, ': <span class="n">$1</span>')
+    .replace(/: (true|false|null)/g, ': <span class="k">$1</span>');
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+window.copyCode = function(btn, code) {
+  navigator.clipboard.writeText(code).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = CHECK_ICON + 'Copied';
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = COPY_ICON + 'Copy'; }, 2000);
+  });
+};
+
+function endpointId(path, method) { return 'ep-' + path.replace(/[\/:]/g,'-').replace(/^-/,'') + '-' + method; }
+
+function setupScrollTracking() {
+  const links = document.querySelectorAll('.sidebar-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.sidebar-link[data-id="${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+        const ep = ENDPOINTS.flatMap(t => t.endpoints).find(e => endpointId(e.path, e.method) === entry.target.id);
+        if (ep) selectEndpoint(ep);
+      }
+    });
+  }, { rootMargin: '-72px 0px -70% 0px' });
+  document.querySelectorAll('.endpoint').forEach(el => observer.observe(el));
+}
+
+// ── Theme toggle ──
+window.toggleTheme = function() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('nexus-docs-theme', next);
+};
+
+(function() {
+  const saved = localStorage.getItem('nexus-docs-theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+})();
+
+init();
+</script>
+</body>
+</html>

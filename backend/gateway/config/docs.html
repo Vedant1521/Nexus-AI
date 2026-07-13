@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NexusAI API Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg-base: #03070c;
+  --bg-surface: #0b1621;
+  --bg-elevated: #0f1e2e;
+  --bg-hover: #132335;
+  --border: rgba(20,180,220,0.08);
+  --border-strong: rgba(20,180,220,0.15);
+  --accent: #14b4dc;
+  --accent-dim: rgba(20,180,220,0.1);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-faint: #475569;
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --code-bg: #03070c;
+  --shadow: rgba(0,0,0,0.25);
+}
+[data-theme="light"] {
+  --bg-base: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --bg-hover: #e2e8f0;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.15);
+  --accent: #0891b2;
+  --accent-dim: rgba(8,145,178,0.08);
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --green: #16a34a;
+  --blue: #2563eb;
+  --purple: #9333ea;
+  --red: #dc2626;
+  --amber: #d97706;
+  --code-bg: #f1f5f9;
+  --shadow: rgba(0,0,0,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-base); color: var(--text-primary); font-size: 14px; line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* ── Navbar ── */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 56px; background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 24px;
+}
+.navbar-brand {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-weight: 700; font-size: 15px;
+  color: var(--accent); letter-spacing: -0.4px;
+  display: flex; align-items: center; gap: 10px;
+}
+.navbar-brand::before {
+  content: ''; width: 24px; height: 24px; border-radius: 7px;
+  background: linear-gradient(135deg, var(--accent), #0d9488);
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(20,180,220,0.25);
+}
+.navbar-brand span { color: var(--text-muted); font-weight: 400; font-size: 12px; letter-spacing: 0.2px; }
+.navbar-links { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.navbar-links a {
+  color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500;
+  padding: 7px 14px; border-radius: 8px; transition: all 0.15s;
+  border: 1px solid transparent;
+}
+.navbar-links a:hover { color: var(--accent); background: var(--accent-dim); }
+.navbar-links a.primary {
+  color: var(--accent); border-color: var(--border-strong);
+}
+.navbar-links a.primary:hover { background: var(--accent-dim); }
+
+/* ── Layout ── */
+.layout { display: flex; padding-top: 56px; min-height: 100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 264px; height: calc(100vh - 56px); position: sticky; top: 56px;
+  background: var(--bg-surface); border-right: 1px solid var(--border);
+  overflow-y: auto; flex-shrink: 0;
+  padding: 16px 0;
+}
+.sidebar-search {
+  padding: 0 16px 14px; position: sticky; top: 0;
+  background: var(--bg-surface); z-index: 10;
+}
+.sidebar-search input {
+  width: 100%; background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px 8px 32px; color: var(--text-primary);
+  font-size: 12px; font-family: 'Inter', sans-serif; outline: none; transition: all 0.15s;
+}
+.sidebar-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+.sidebar-search input::placeholder { color: var(--text-faint); }
+.sidebar-search { position: relative; }
+.sidebar-search .search-icon {
+  position: absolute; left: 28px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; color: var(--text-faint); pointer-events: none;
+}
+.sidebar-section { margin-bottom: 20px; }
+.sidebar-heading {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-faint);
+  padding: 0 20px 8px; cursor: pointer; user-select: none;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: color 0.12s;
+}
+.sidebar-heading:hover { color: var(--text-secondary); }
+.sidebar-heading .chevron {
+  width: 12px; height: 12px; transition: transform 0.2s; flex-shrink: 0;
+  opacity: 0.5;
+}
+.sidebar-heading.collapsed .chevron { transform: rotate(-90deg); }
+.sidebar-heading .tag-count {
+  font-size: 10px; color: var(--text-faint); font-weight: 500;
+}
+.sidebar-section.collapsed .sidebar-link { display: none; }
+.sidebar-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 20px; text-decoration: none; transition: all 0.12s;
+  border-left: 2px solid transparent;
+}
+.sidebar-link:hover { background: var(--bg-elevated); }
+.sidebar-link.active {
+  background: var(--accent-dim); border-left-color: var(--accent);
+}
+.sidebar-link .method-badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700;
+  text-transform: uppercase; width: 34px; text-align: center; flex-shrink: 0;
+  border-radius: 3px; padding: 2px 0;
+}
+.sidebar-link .endpoint-path {
+  font-size: 12px; color: var(--text-secondary); font-weight: 450;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sidebar-link.active .endpoint-path { color: var(--accent); font-weight: 500; }
+.sidebar-no-results {
+  padding: 20px; text-align: center; color: var(--text-faint); font-size: 12px;
+}
+
+/* ── Main content ── */
+.main { flex: 1; min-width: 0; max-width: 720px; padding: 40px 48px 120px; }
+.main-intro { margin-bottom: 48px; }
+.main-intro h1 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 32px; font-weight: 700;
+  color: var(--text-primary); letter-spacing: -0.8px; margin-bottom: 14px;
+  line-height: 1.2;
+}
+.main-intro p { color: var(--text-secondary); font-size: 15px; line-height: 1.7; }
+.main-intro .server-url {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  padding: 8px 14px; border-radius: 8px; color: var(--accent);
+}
+
+.tag-group { margin-bottom: 56px; }
+.tag-header {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 22px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.5px;
+  padding-bottom: 14px; border-bottom: 1px solid var(--border);
+  line-height: 1.3;
+}
+.tag-desc { color: var(--text-muted); font-size: 13px; margin-bottom: 28px; }
+
+.endpoint { margin-bottom: 48px; scroll-margin-top: 72px; }
+.endpoint-header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; position: relative; }
+.endpoint-method {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 6px;
+  letter-spacing: 0.5px; flex-shrink: 0;
+}
+.endpoint-path {
+  font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600;
+  color: var(--text-primary); word-break: break-all;
+}
+.permalink {
+  opacity: 0; color: var(--text-faint); text-decoration: none; font-size: 14px;
+  margin-left: 8px; transition: opacity 0.15s; flex-shrink: 0;
+}
+.permalink:hover { color: var(--accent); }
+.endpoint:hover .permalink { opacity: 1; }
+.endpoint-title {
+  font-size: 15px; font-weight: 600; color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+.endpoint-desc {
+  color: var(--text-secondary); font-size: 13.5px; line-height: 1.7;
+  margin-bottom: 24px; white-space: pre-wrap;
+}
+
+/* ── Sections ── */
+.section-label {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-faint);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── Params table ── */
+.params-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+.params-table th {
+  text-align: left; font-size: 11px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+}
+.params-table td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  font-size: 13px; vertical-align: top;
+}
+.params-table .param-name { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 500; }
+.params-table .param-type { color: var(--purple); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.params-table .param-required { color: var(--red); font-size: 10px; font-weight: 700; }
+.params-table .param-desc { color: var(--text-secondary); }
+.params-table .param-enum { color: var(--amber); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+/* ── Schema ── */
+.schema-card {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 10px; margin-bottom: 16px; overflow: hidden;
+}
+.schema-card-header {
+  padding: 10px 16px; background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+  color: var(--accent); display: flex; align-items: center; gap: 8px;
+}
+.schema-card-body { padding: 14px 16px; }
+.schema-row {
+  display: grid; grid-template-columns: 160px 100px 1fr; gap: 12px;
+  padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+}
+.schema-row:last-child { border-bottom: none; }
+.schema-prop { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 500; font-size: 12.5px; }
+.schema-type { font-family: 'JetBrains Mono', monospace; color: var(--purple); font-size: 12px; }
+.schema-desc { color: var(--text-secondary); font-size: 12.5px; }
+.schema-nested { margin-left: 20px; padding-left: 12px; border-left: 2px solid var(--border); margin-top: 4px; }
+.schema-expanded .schema-card { border-color: var(--border-strong); }
+.schema-ref-link {
+  color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+  transition: color 0.12s;
+}
+.schema-ref-link:hover { color: #22d3ee; text-decoration: underline; }
+.schema-ref-link .arrow { font-size: 10px; transition: transform 0.2s; }
+.schema-ref-link.expanded .arrow { transform: rotate(90deg); }
+
+/* ── Responses ── */
+.response-row {
+  display: flex; align-items: flex-start; gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.response-row:last-child { border-bottom: none; }
+.response-code {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  padding: 3px 10px; border-radius: 5px; flex-shrink: 0; min-width: 48px; text-align: center;
+}
+.response-code-2xx { background: rgba(34,197,94,0.12); color: var(--green); }
+.response-code-4xx { background: rgba(239,68,68,0.12); color: var(--red); }
+.response-code-5xx { background: rgba(245,158,11,0.12); color: var(--amber); }
+.response-desc { color: var(--text-secondary); font-size: 13px; }
+
+/* ── Right panel ── */
+.right-panel {
+  width: 340px; flex-shrink: 0; position: sticky; top: 56px;
+  height: calc(100vh - 56px); overflow-y: auto;
+  background: var(--bg-surface); border-left: 1px solid var(--border);
+  padding: 32px 24px;
+}
+.right-panel-label {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-faint);
+  margin-bottom: 14px;
+}
+
+/* ── Code tabs ── */
+.code-tabs { display: flex; gap: 2px; margin-bottom: 12px; }
+.code-tab {
+  padding: 5px 12px; font-size: 11px; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 6px; background: transparent;
+  color: var(--text-muted); transition: all 0.12s; font-family: 'Inter', sans-serif;
+}
+.code-tab:hover { color: var(--text-secondary); border-color: var(--border-strong); }
+.code-tab.active {
+  background: var(--accent-dim); color: var(--accent); border-color: var(--accent);
+}
+
+.code-block {
+  background: var(--code-bg); border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; margin-bottom: 24px; position: relative;
+}
+.code-block-header {
+  padding: 8px 14px; background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.code-block-header .lang { font-family: 'JetBrains Mono', monospace; text-transform: uppercase; font-size: 10px; }
+.copy-btn {
+  background: transparent; border: 1px solid var(--border); border-radius: 5px;
+  padding: 3px 8px; font-size: 10px; font-weight: 600; color: var(--text-muted);
+  cursor: pointer; transition: all 0.12s; display: flex; align-items: center; gap: 4px;
+  font-family: 'Inter', sans-serif;
+}
+.copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+.copy-btn.copied { color: var(--green); border-color: rgba(34,197,94,0.3); }
+.copy-btn svg { width: 11px; height: 11px; }
+.code-block pre {
+  padding: 14px; overflow-x: auto; font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; line-height: 1.6; color: var(--text-secondary);
+}
+.code-block pre .k { color: var(--purple); }
+.code-block pre .s { color: var(--green); }
+.code-block pre .n { color: var(--amber); }
+.code-block pre .p { color: var(--text-faint); }
+.code-block pre .c { color: var(--text-faint); font-style: italic; }
+.code-block pre .key { color: var(--accent); }
+.code-block pre .fn { color: var(--blue); }
+
+/* ── Loading skeleton ── */
+.skeleton { padding: 40px 48px; }
+.skeleton-line {
+  height: 12px; background: var(--bg-elevated); border-radius: 6px;
+  margin-bottom: 12px; animation: shimmer 1.5s infinite;
+}
+.skeleton-line.short { width: 40%; }
+.skeleton-line.medium { width: 65%; }
+.skeleton-line.long { width: 85%; }
+.skeleton-block {
+  height: 80px; background: var(--bg-elevated); border-radius: 10px;
+  margin-bottom: 20px; animation: shimmer 1.5s infinite;
+}
+.skeleton-sidebar { padding: 16px; }
+.skeleton-sidebar-line {
+  height: 10px; background: var(--bg-elevated); border-radius: 5px;
+  margin-bottom: 10px; width: 70%; animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.4; }
+}
+
+/* ── Method colors ── */
+.m-get { background: rgba(59,130,246,0.12); color: var(--blue); }
+.m-post { background: rgba(34,197,94,0.12); color: var(--green); }
+.m-patch { background: rgba(168,85,247,0.12); color: var(--purple); }
+.m-delete { background: rgba(239,68,68,0.12); color: var(--red); }
+
+/* ── Security badge ── */
+.sec-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 6px; margin-bottom: 16px;
+}
+.sec-badge.locked { color: var(--amber); border-color: rgba(245,158,11,0.15); }
+.sec-badge.open { color: var(--green); border-color: rgba(34,197,94,0.15); }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Mobile ── */
+.mobile-toggle { display: none; }
+@media (max-width: 1100px) {
+  .right-panel { display: none; }
+}
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .sidebar.open { display: block; position: fixed; top: 56px; left: 0; right: 0; z-index: 99; width: 100%; height: calc(100vh - 56px); }
+  .main { padding: 24px 20px 80px; max-width: 100%; }
+  .mobile-toggle {
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px;
+    margin-bottom: 20px;
+  }
+}
+/* ── Theme toggle ── */
+.theme-toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+  background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+  transition: all 0.15s; padding: 0;
+}
+.theme-toggle:hover { color: var(--accent); border-color: var(--border-strong); background: var(--accent-dim); }
+.theme-icon-light { display: none; }
+[data-theme="light"] .theme-icon-dark { display: none; }
+[data-theme="light"] .theme-icon-light { display: block; }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="navbar-brand">NexusAI <span>API Reference</span></div>
+  <div class="navbar-links">
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">
+      <svg class="theme-icon-dark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="theme-icon-light" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+    <a href="/api/docs/try">Try It Out</a>
+    <a href="/api/docs/json" class="primary">OpenAPI JSON</a>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="skeleton-sidebar">
+      <div class="skeleton-sidebar-line"></div>
+      <div class="skeleton-sidebar-line" style="width:50%"></div>
+      <div class="skeleton-sidebar-line"></div>
+      <div class="skeleton-sidebar-line" style="width:60%"></div>
+      <div class="skeleton-sidebar-line" style="width:45%"></div>
+    </div>
+  </aside>
+  <main class="main" id="main">
+    <div class="skeleton">
+      <div class="skeleton-line medium"></div>
+      <div class="skeleton-line long"></div>
+      <div class="skeleton-line short"></div>
+      <div class="skeleton-block"></div>
+      <div class="skeleton-line long"></div>
+      <div class="skeleton-line medium"></div>
+    </div>
+  </main>
+  <aside class="right-panel" id="rightPanel"></aside>
+</div>
+
+<script>
+const METHOD_COLORS = { get: 'm-get', post: 'm-post', patch: 'm-patch', delete: 'm-delete' };
+let SPEC = null;
+let ENDPOINTS = [];
+let activeLang = 'curl';
+
+const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+async function init() {
+  try {
+    const res = await fetch('/api/docs/json');
+    SPEC = await res.json();
+    buildEndpoints();
+    renderSidebar();
+    renderMain();
+    const firstEp = ENDPOINTS[0]?.endpoints[0];
+    if (firstEp) renderRightPanel(`${firstEp.path} ${firstEp.method}`);
+    setupScrollTracking();
+  } catch (e) {
+    document.getElementById('main').innerHTML = '<div style="padding:60px;text-align:center;color:#64748b">Failed to load API spec. Make sure the gateway is running.</div>';
+  }
+}
+
+function buildEndpoints() {
+  const tagMap = {};
+  const tags = SPEC.tags || [];
+  tags.forEach(t => { tagMap[t.name] = { ...t, endpoints: [] }; });
+  for (const [path, methods] of Object.entries(SPEC.paths || {})) {
+    for (const [method, def] of Object.entries(methods)) {
+      if (!['get','post','patch','put','delete'].includes(method)) continue;
+      const tag = (def.tags && def.tags[0]) || 'Default';
+      if (!tagMap[tag]) tagMap[tag] = { name: tag, endpoints: [] };
+      tagMap[tag].endpoints.push({ path, method, def });
+    }
+  }
+  ENDPOINTS = Object.values(tagMap).filter(t => t.endpoints.length > 0);
+}
+
+// ── Sidebar ──
+function renderSidebar() {
+  const el = document.getElementById('sidebar');
+  let html = `<div class="sidebar-search">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="sidebarSearch" placeholder="Search endpoints..." />
+  </div>`;
+  for (const tag of ENDPOINTS) {
+    html += `<div class="sidebar-section" data-tag="${tag.name}">
+      <div class="sidebar-heading" onclick="toggleTagCollapse(this)">
+        <span>${tag.name}</span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <span class="tag-count">${tag.endpoints.length}</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </div>`;
+    for (const ep of tag.endpoints) {
+      const id = endpointId(ep.path, ep.method);
+      const shortPath = ep.path.replace('/api/','');
+      html += `<a href="#${id}" class="sidebar-link" data-id="${id}" data-search="${(ep.path + ' ' + (ep.def.summary||'')).toLowerCase()}">
+        <span class="method-badge ${METHOD_COLORS[ep.method]}">${ep.method}</span>
+        <span class="endpoint-path">${shortPath}</span>
+      </a>`;
+    }
+    html += `</div>`;
+  }
+  html += `<div class="sidebar-no-results" id="noResults" style="display:none">No endpoints found</div>`;
+  el.innerHTML = html;
+
+  const searchInput = document.getElementById('sidebarSearch');
+  searchInput.addEventListener('input', (e) => filterSidebar(e.target.value));
+}
+
+function filterSidebar(query) {
+  const q = query.toLowerCase().trim();
+  const sections = document.querySelectorAll('.sidebar-section');
+  let anyVisible = false;
+  sections.forEach(section => {
+    const links = section.querySelectorAll('.sidebar-link');
+    let visibleCount = 0;
+    links.forEach(link => {
+      const searchData = link.dataset.search || '';
+      const match = !q || searchData.includes(q);
+      link.style.display = match ? '' : 'none';
+      if (match) visibleCount++;
+    });
+    section.style.display = visibleCount > 0 ? '' : 'none';
+    anyVisible = anyVisible || visibleCount > 0;
+  });
+  document.getElementById('noResults').style.display = anyVisible ? 'none' : '';
+}
+
+window.toggleTagCollapse = function(headingEl) {
+  const section = headingEl.closest('.sidebar-section');
+  section.classList.toggle('collapsed');
+  headingEl.classList.toggle('collapsed');
+};
+
+// ── Main content ──
+function renderMain() {
+  const el = document.getElementById('main');
+  let html = `<div class="main-intro">
+    <h1>${SPEC.info.title}</h1>
+    <p>${SPEC.info.description || ''}</p>
+    <div class="server-url">${SPEC.servers[0].url}</div>
+  </div>`;
+  for (const tag of ENDPOINTS) {
+    html += `<div class="tag-group">
+      <h2 class="tag-header">${tag.name}</h2>
+      <p class="tag-desc">${tag.description || ''}</p>`;
+    for (const ep of tag.endpoints) {
+      html += renderEndpoint(ep);
+    }
+    html += `</div>`;
+  }
+  el.innerHTML = html;
+}
+
+function renderEndpoint(ep) {
+  const id = endpointId(ep.path, ep.method);
+  const def = ep.def;
+  const sec = def.security;
+  const secBadge = sec
+    ? `<div class="sec-badge locked">&#128274; Requires session cookie</div>`
+    : `<div class="sec-badge open">&#128275; No auth required</div>`;
+  let html = `<div class="endpoint" id="${id}">
+    <div class="endpoint-header">
+      <span class="endpoint-method ${METHOD_COLORS[ep.method]}">${ep.method}</span>
+      <span class="endpoint-path">${ep.path}</span>
+      <a href="#${id}" class="permalink" title="Copy link">#</a>
+    </div>
+    <div class="endpoint-title">${def.summary || ''}</div>
+    ${secBadge}
+    ${def.description ? `<div class="endpoint-desc">${def.description}</div>` : ''}`;
+
+  const pathParams = (def.parameters || []).filter(p => p.in === 'path');
+  if (pathParams.length) html += renderParams('Path Parameters', pathParams);
+  const queryParams = (def.parameters || []).filter(p => p.in === 'query');
+  if (queryParams.length) html += renderParams('Query Parameters', queryParams);
+  if (def.requestBody) html += renderRequestBody(def.requestBody);
+  html += renderResponses(def.responses);
+  html += `</div>`;
+  return html;
+}
+
+function renderParams(label, params) {
+  let rows = '';
+  for (const p of params) {
+    const req = p.required ? '<span class="param-required">*required</span>' : '';
+    const enumVals = p.schema?.enum ? `<div class="param-enum">enum: ${p.schema.enum.join(' | ')}</div>` : '';
+    rows += `<tr>
+      <td class="param-name">${p.name} ${req}</td>
+      <td class="param-type">${p.schema?.type || 'string'}</td>
+      <td class="param-desc">${p.description || ''}${enumVals}</td>
+    </tr>`;
+  }
+  return `<div class="section-label">${label}</div>
+    <table class="params-table"><thead><tr>
+      <th>Name</th><th>Type</th><th>Description</th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function renderRequestBody(body) {
+  const content = body.content;
+  if (!content) return '';
+  const types = Object.keys(content);
+  let html = `<div class="section-label">Request Body</div>`;
+  for (const type of types) {
+    const schema = content[type].schema;
+    const isMultipart = type.includes('multipart');
+    html += `<div class="schema-card">
+      <div class="schema-card-header">${isMultipart ? 'multipart/form-data' : type}</div>
+      <div class="schema-card-body">${renderSchema(schema)}</div>
+    </div>`;
+  }
+  return html;
+}
+
+// ── Schema rendering with nested $ref expansion ──
+function renderSchema(schema, depth) {
+  if (depth === undefined) depth = 0;
+  if (!schema) return '<div class="schema-desc">No schema</div>';
+  if (schema.$ref) {
+    const refName = schema.$ref.split('/').pop();
+    const refSchema = SPEC.components?.schemas?.[refName];
+    if (refSchema) return renderSchemaProps(refSchema, depth);
+    return `<div class="schema-desc">Schema: ${refName}</div>`;
+  }
+  if (schema.type === 'object' || schema.properties) {
+    return renderSchemaProps(schema, depth);
+  }
+  if (schema.type === 'array') {
+    return renderSchema(schema.items, depth);
+  }
+  return `<div class="schema-desc">${schema.type || 'any'}</div>`;
+}
+
+function renderSchemaProps(schema, depth) {
+  if (depth === undefined) depth = 0;
+  if (!schema.properties) return '<div class="schema-desc">No properties</div>';
+  let rows = '';
+  const required = schema.required || [];
+  for (const [name, prop] of Object.entries(schema.properties)) {
+    const isReq = required.includes(name);
+    const isRef = !!prop.$ref || (prop.items?.$ref);
+    const refName = prop.$ref ? prop.$ref.split('/').pop() : (prop.items?.$ref ? prop.items.$ref.split('/').pop() : null);
+    const type = prop.$ref ? refName : (prop.type || 'any');
+    const items = prop.items?.$ref ? `array[${refName}]` : prop.items ? `array[${prop.items.type}]` : '';
+    const enumVals = prop.enum ? ` enum: ${prop.enum.join('|')}` : '';
+    const desc = (prop.description || '') + enumVals + (isReq ? ' **(required)**' : '');
+
+    let typeCell;
+    if (isRef && refName) {
+      const refId = `ref-${name}-${depth}-${Math.random().toString(36).slice(2,8)}`;
+      typeCell = `<span class="schema-ref-link" onclick="toggleNestedSchema('${refName}','${refId}',this)">
+        <span class="arrow">&#9656;</span>${items || type}
+      </span>
+      <div id="${refId}"></div>`;
+    } else {
+      typeCell = `<span class="schema-type">${items || type}</span>`;
+    }
+
+    rows += `<div class="schema-row">
+      <div class="schema-prop">${name}</div>
+      <div>${typeCell}</div>
+      <div class="schema-desc">${desc}</div>
+    </div>`;
+  }
+  return rows;
+}
+
+window.toggleNestedSchema = function(refName, containerId, linkEl) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (container.innerHTML) {
+    container.innerHTML = '';
+    linkEl.classList.remove('expanded');
+    return;
+  }
+  const schema = SPEC.components?.schemas?.[refName];
+  if (!schema) return;
+  const nested = document.createElement('div');
+  nested.className = 'schema-nested';
+  nested.innerHTML = `<div class="schema-card" style="margin-top:6px"><div class="schema-card-body">${renderSchemaProps(schema, 1)}</div></div>`;
+  container.appendChild(nested);
+  linkEl.classList.add('expanded');
+};
+
+// ── Responses ──
+function renderResponses(responses) {
+  let rows = '';
+  for (const [code, resp] of Object.entries(responses)) {
+    const cls = code.startsWith('2') ? 'response-code-2xx' : code.startsWith('4') ? 'response-code-4xx' : 'response-code-5xx';
+    let schemaLink = '';
+    if (resp.content) {
+      const schema = resp.content['application/json']?.schema;
+      if (schema?.$ref) {
+        const refName = schema.$ref.split('/').pop();
+        schemaLink = `<div class="schema-ref-link" onclick="toggleNestedSchema('${refName}','resp-${code}-${Math.random().toString(36).slice(2,8)}',this)"><span class="arrow">&#9656;</span>${refName}</div>`;
+      } else if (schema?.type === 'array' && schema.items?.$ref) {
+        const refName = schema.items.$ref.split('/').pop();
+        schemaLink = `<div class="schema-ref-link" onclick="toggleNestedSchema('${refName}','resp-${code}-${Math.random().toString(36).slice(2,8)}',this)"><span class="arrow">&#9656;</span>array[${refName}]</div>`;
+      }
+    }
+    rows += `<div class="response-row">
+      <span class="response-code ${cls}">${code}</span>
+      <div>
+        <div class="response-desc">${resp.description || ''}</div>
+        ${schemaLink}
+      </div>
+    </div>`;
+  }
+  return `<div class="section-label">Responses</div>${rows}`;
+}
+
+// ── Right panel with multi-language code tabs ──
+let currentEndpointKey = null;
+
+function renderRightPanel(endpointKey) {
+  currentEndpointKey = endpointKey;
+  const el = document.getElementById('rightPanel');
+  if (!endpointKey) { el.innerHTML = ''; return; }
+  const [path, method] = endpointKey.split(' ');
+  const def = SPEC.paths[path]?.[method];
+  if (!def) { el.innerHTML = ''; return; }
+
+  const requestExamples = buildRequestExamples(path, method, def);
+  const responseExample = buildExampleResponse(def);
+
+  let html = `<div class="right-panel-label">Example Request</div>`;
+  html += `<div class="code-tabs">`;
+  for (const lang of Object.keys(requestExamples)) {
+    html += `<button class="code-tab ${lang === activeLang ? 'active' : ''}" data-lang="${lang}" onclick="switchLang('${lang}')">${lang}</button>`;
+  }
+  html += `</div>`;
+  html += `<div id="requestCode"></div>`;
+  html += `<div class="right-panel-label">Example Response</div>`;
+  html += `<div id="responseCode"></div>`;
+  el.innerHTML = html;
+
+  renderRequestCode(requestExamples);
+  renderResponseCode(responseExample);
+}
+
+function renderRequestCode(examples) {
+  const container = document.getElementById('requestCode');
+  if (!container) return;
+  const code = examples[activeLang] || examples['curl'];
+  const langLabel = activeLang === 'curl' ? 'bash' : activeLang === 'fetch' ? 'javascript' : 'python';
+  const highlighted = activeLang === 'curl' ? highlightBash(code)
+    : activeLang === 'fetch' ? highlightJs(code)
+    : highlightPython(code);
+  container.innerHTML = `<div class="code-block">
+    <div class="code-block-header">
+      <span>${activeLang === 'curl' ? 'cURL' : activeLang === 'fetch' ? 'fetch()' : 'requests'}</span>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span class="lang">${langLabel}</span>
+        <button class="copy-btn" onclick="copyCode(this, ${JSON.stringify(code).replace(/"/g,'&quot;')})">${COPY_ICON}Copy</button>
+      </span>
+    </div>
+    <pre>${highlighted}</pre>
+  </div>`;
+}
+
+function renderResponseCode(responseExample) {
+  const container = document.getElementById('responseCode');
+  if (!container) return;
+  if (!responseExample) {
+    container.innerHTML = `<div class="code-block">
+      <div class="code-block-header"><span>Response</span><span class="lang">json</span></div>
+      <pre>{}</pre>
+    </div>`;
+    return;
+  }
+  const jsonStr = JSON.stringify(responseExample, null, 2);
+  container.innerHTML = `<div class="code-block">
+    <div class="code-block-header">
+      <span>200 Response</span>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span class="lang">json</span>
+        <button class="copy-btn" onclick="copyCode(this, ${JSON.stringify(jsonStr).replace(/"/g,'&quot;')})">${COPY_ICON}Copy</button>
+      </span>
+    </div>
+    <pre>${highlightJson(jsonStr)}</pre>
+  </div>`;
+}
+
+let currentEndpointKey = null;
+
+window.switchLang = function(lang) {
+  activeLang = lang;
+  document.querySelectorAll('.code-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.lang === lang);
+  });
+  if (currentEndpointKey) {
+    const [path, method] = currentEndpointKey.split(' ');
+    const def = SPEC.paths[path]?.[method];
+    if (def) {
+      const examples = buildRequestExamples(path, method, def);
+      renderRequestCode(examples);
+    }
+  }
+};
+
+function getCurrentEndpoint() {
+  const active = document.querySelector('.sidebar-link.active');
+  if (!active) return null;
+  return ENDPOINTS.flatMap(t => t.endpoints).find(e => endpointId(e.path, e.method) === active.dataset.id);
+}
+
+// ── Multi-language code generators ──
+function buildRequestExamples(path, method, def) {
+  const baseUrl = SPEC.servers[0].url;
+  const fullUrl = `${baseUrl}${path}`;
+  const hasBody = !!def.requestBody?.content?.['application/json']?.schema;
+  const hasMultipart = !!def.requestBody?.content?.['multipart/form-data'];
+  const hasAuth = !!def.security;
+  const bodyExample = hasBody ? buildExample(def.requestBody.content['application/json'].schema) : null;
+
+  // cURL
+  let curl = `curl -X ${method.toUpperCase()} ${fullUrl}`;
+  if (hasAuth) curl += ` \\\n  -H "Cookie: session=<your-session-id>"`;
+  if (hasBody) {
+    curl += ` \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(bodyExample, null, 2)}'`;
+  }
+  if (hasMultipart) {
+    const schema = def.requestBody.content['multipart/form-data'].schema;
+    for (const [name, prop] of Object.entries(schema?.properties || {})) {
+      if (prop.type === 'string' && prop.format === 'binary') {
+        curl += ` \\\n  -F "${name}=@/path/to/file"`;
+      } else {
+        curl += ` \\\n  -F "${name}=example_value"`;
+      }
+    }
+  }
+
+  // JavaScript fetch
+  let fetchCode = `const res = await fetch('${fullUrl}', {\n  method: '${method.toUpperCase()}',`;
+  if (hasAuth) fetchCode += `\n  credentials: 'include',`;
+  if (hasBody) {
+    fetchCode += `\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(${JSON.stringify(bodyExample, null, 2).replace(/\n/g, '\n  ')})`;
+  } else if (hasMultipart) {
+    fetchCode += `\n  body: formData`;
+  }
+  fetchCode += `\n});\nconst data = await res.json();\nconsole.log(data);`;
+
+  // Python requests
+  let pyCode = `import requests\n\n`;
+  let pyHeaders = '';
+  if (hasAuth) pyHeaders += `'Cookie': 'session=<your-session-id>', `;
+  if (hasBody) pyHeaders += `'Content-Type': 'application/json', `;
+  pyCode += `response = requests.${method.toLowerCase()}(\n  '${fullUrl}',`;
+  if (pyHeaders) pyCode += `\n  headers={${pyHeaders.trim().replace(/,$/,'')}},`;
+  if (hasBody) pyCode += `\n  json=${JSON.stringify(bodyExample, null, 2).replace(/\n/g, '\n  ')}`;
+  pyCode += `\n)\nprint(response.json())`;
+
+  return { curl, fetch: fetchCode, python: pyCode };
+}
+
+function buildExampleResponse(def) {
+  for (const [code, resp] of Object.entries(def.responses || {})) {
+    if (!code.startsWith('2')) continue;
+    const schema = resp.content?.['application/json']?.schema;
+    if (!schema) continue;
+    return buildExample(schema);
+  }
+  return null;
+}
+
+function buildExample(schema) {
+  if (!schema) return null;
+  if (schema.$ref) {
+    const refName = schema.$ref.split('/').pop();
+    return buildExample(SPEC.components?.schemas?.[refName]);
+  }
+  if (schema.example !== undefined) return schema.example;
+  if (schema.type === 'object' || schema.properties) {
+    const obj = {};
+    for (const [name, prop] of Object.entries(schema.properties || {})) {
+      obj[name] = buildExample(prop);
+    }
+    return obj;
+  }
+  if (schema.type === 'array') return [buildExample(schema.items)];
+  if (schema.type === 'string') return schema.example || 'string';
+  if (schema.type === 'number' || schema.type === 'integer') return schema.example || 0;
+  if (schema.type === 'boolean') return schema.example || false;
+  return null;
+}
+
+// ── Syntax highlighters ──
+function highlightJson(str) {
+  return str
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+    .replace(/: "([^"]*)"/g, ': <span class="s">"$1"</span>')
+    .replace(/: (\d+)/g, ': <span class="n">$1</span>')
+    .replace(/: (true|false|null)/g, ': <span class="k">$1</span>');
+}
+
+function highlightBash(str) {
+  return str
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\b(curl|-X|-H|-d|-F)\b/g, '<span class="k">$1</span>')
+    .replace(/"([^"]*)"/g, '<span class="s">"$1"</span>')
+    .replace(/'([^']*)'/g, '<span class="s">\'$1\'</span>');
+}
+
+function highlightJs(str) {
+  return str
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\b(const|await|async|fetch|JSON|stringify|console|log)\b/g, '<span class="k">$1</span>')
+    .replace(/'([^']*)'/g, '<span class="s">\'$1\'</span>')
+    .replace(/(\w+)\(/g, '<span class="fn">$1</span>(');
+}
+
+function highlightPython(str) {
+  return str
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\b(import|from|requests|response|print|json|headers)\b/g, '<span class="k">$1</span>')
+    .replace(/'([^']*)'/g, '<span class="s">\'$1\'</span>');
+}
+
+// ── Copy button ──
+window.copyCode = function(btn, code) {
+  navigator.clipboard.writeText(code).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = CHECK_ICON + 'Copied';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = COPY_ICON + 'Copy';
+    }, 2000);
+  });
+};
+
+// ── Utilities ──
+function endpointId(path, method) {
+  return 'ep-' + path.replace(/[\/:]/g, '-').replace(/^-/, '') + '-' + method;
+}
+
+function setupScrollTracking() {
+  const links = document.querySelectorAll('.sidebar-link');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.sidebar-link[data-id="${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+        const ep = ENDPOINTS.flatMap(t => t.endpoints).find(e => endpointId(e.path, e.method) === entry.target.id);
+        if (ep) renderRightPanel(`${ep.path} ${ep.method}`);
+      }
+    });
+  }, { rootMargin: '-72px 0px -70% 0px' });
+  document.querySelectorAll('.endpoint').forEach(el => observer.observe(el));
+}
+
+// ── Theme toggle ──
+window.toggleTheme = function() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('nexus-docs-theme', next);
+};
+
+(function() {
+  const saved = localStorage.getItem('nexus-docs-theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+})();
+
+init();
+</script>
+</body>
+</html>

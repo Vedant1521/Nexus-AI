@@ -26,6 +26,7 @@
 - [Environment Variables](#-environment-variables)
 - [Getting Started](#-getting-started)
 - [API Reference](#-api-reference)
+- [Swagger Docs](#-swagger-docs)
 - [Agent System](#-agent-system)
 - [Credit & Billing System](#-credit--billing-system)
 - [Authentication & Security](#-authentication--security)
@@ -124,6 +125,8 @@ graph TB
 | 📋 **Message Actions** | Per-message icon-only hover toolbar with Copy, Regenerate (re-call agent with preceding user prompt), and Delete with two-click confirmation (persisted to backend) |
 | ⬇️ **Scroll-to-Bottom** | Floating button that appears when the user scrolls up in a long conversation, with smooth-scroll back to latest messages and smart auto-scroll pausing |
 | 🎛️ **Custom Scrollbar** | Thin 6px Antigravity-style scrollbar with cyan-tinted thumb that brightens on hover/active, styled via `nexus-scrollbar` CSS class |
+| 📖 **Swagger API Docs** | Interactive OpenAPI 3.0 documentation served at `/api/docs` with Deep Ocean themed Swagger UI |
+| 🌓 **Light/Dark Theme** | Theme toggle on main app navbar and API docs pages with localStorage persistence |
 
 ---
 
@@ -148,6 +151,7 @@ graph TB
 | Document Gen | PDFKit, PPTXGenJS |
 | File Upload | Multer |
 | Security | Helmet, CORS, HttpOnly Cookies, HMAC-SHA256 |
+| API Documentation | Swagger UI (swagger-jsdoc, swagger-ui-express) |
 | Gateway Proxy | express-http-proxy |
 | Containerization | Docker Compose |
 
@@ -181,8 +185,13 @@ nexus-ai/
 │   │   └── redis/
 │   │       └── redis.js             # Shared Redis client (ioredis)
 │   ├── gateway/                     # API Gateway (:8000)
-│   │   ├── index.js                 # Express server, proxy routing
+│   │   ├── index.js                 # Express server, proxy routing, Swagger UI
 │   │   ├── Dockerfile
+│   │   ├── config/
+│   │   │   ├── swagger.js            # OpenAPI 3.0 spec configuration
+│   │   │   ├── swagger.routes.js     # JSDoc route annotations for all endpoints
+│   │   │   ├── docs.html             # Custom three-panel API docs page (vanilla JS)
+│   │   │   └── try.html              # Custom three-panel interactive Try It Out page
 │   │   ├── controllers/
 │   │   │   └── user.controller.js   # GET /api/me — return session user
 │   │   ├── middlewares/
@@ -487,6 +496,42 @@ All requests go through the **API Gateway** at `http://localhost:8000`.
 |---|---|---|---|
 | `PATCH` | `/internal/update-plan` | Auth | Update user plan & credits after payment verification. |
 | `PATCH` | `/internal/deduct-credits` | Auth | Deduct credits for an agent invocation. |
+
+---
+
+## 📖 Swagger Docs
+
+Interactive API documentation is available in two formats:
+
+### Custom Docs (OpenAI/Stripe-style)
+```
+http://localhost:8000/api/docs
+```
+A fully custom three-panel documentation page — left sidebar navigation grouped by tags, center panel with endpoint details (parameters, request body schema, responses), and right panel with live code examples and JSON response samples. Features include:
+- **Sidebar search** — Filter endpoints by typing (path or summary)
+- **Multi-language code tabs** — Switch between cURL, JavaScript `fetch()`, and Python `requests` in the right panel (clicking a tab re-renders only the code block, not the entire panel)
+- **Copy buttons** — One-click copy on all code blocks with visual feedback
+- **Collapsible sidebar tags** — Click a tag heading to collapse/expand its endpoints
+- **Hover permalinks** — `#` icon appears on hover next to endpoint paths for easy sharing
+- **Loading skeleton** — Styled placeholder while the spec is fetching
+- **Nested schema expansion** — Click any `$ref` schema link to expand its properties inline with indentation
+- Deep Ocean themed with Inter + system font stack (Apple/Segoe UI) for headings, JetBrains Mono for code, scroll-based active section tracking
+
+### Try It Out (Interactive testing)
+```
+http://localhost:8000/api/docs/try
+```
+Custom three-panel interactive testing page matching the docs design. Select an endpoint from the sidebar, fill in path params, query params, and JSON body in the right panel, then click Execute to fire a live request. Shows response status, timing, headers, and syntax-highlighted body with copy buttons. Supports JSON and multipart/form-data (file uploads).
+
+### Raw OpenAPI JSON
+```
+http://localhost:8000/api/docs/json
+```
+Machine-readable OpenAPI 3.0 spec for importing into Postman, Insomnia, or other tools.
+
+The documentation is generated from OpenAPI 3.0 annotations using `swagger-jsdoc`. It includes full request/response schemas for all 14 endpoints, tagged sections (Auth, Chat, Agent, Billing, Internal), and cookie-based security scheme documentation.
+
+> **Note:** The "Try It Out" endpoints requiring auth will need a valid `session` cookie to work.
 
 ---
 

@@ -1,9 +1,19 @@
-import { Share2, MoreHorizontal, Zap, ChartBar, MessageCircle, MessageSquare } from "lucide-react";
+import { Share2, MoreHorizontal, Zap, ChartBar, MessageCircle, MessageSquare, Sun, Moon } from "lucide-react";
 import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const { conversations, selectedConversation } = useSelector(state => state.conversation);
   const {messages} = useSelector(state => state.message);
+  const [theme, setTheme] = useState(() => localStorage.getItem("nexus-app-theme") || "dark");
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("nexus-app-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(t => t === "dark" ? "light" : "dark");
+
   return (
     <div className="h-14 flex items-center justify-between px-5 border-b border-[rgba(20,180,220,0.08)] bg-[#0b1621]">
 
@@ -21,7 +31,13 @@ export default function Navbar() {
       </div>
 
       {/* Right — actions */}
-     
+      <button
+        onClick={toggleTheme}
+        className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/[0.05] border border-transparent hover:border-white/[0.06] transition-all duration-150 bg-transparent cursor-pointer"
+        title="Toggle theme"
+      >
+        {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+      </button>
 
     </div>
   );
