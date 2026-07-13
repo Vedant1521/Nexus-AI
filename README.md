@@ -121,7 +121,7 @@ graph TB
 | 🔎 **Conversation Search** | Client-side fuzzy search across conversation titles with date-grouped sections (Pinned, Today, Yesterday, Older) |
 | 🔄 **Auth Loading Gate** | Splash-screen loading state during session validation to eliminate login-page flash on refresh |
 | 🛑 **401 Auto-Logout** | Axios response interceptor that automatically clears session and redirects to login on 401 responses |
-| 📋 **Message Actions** | Per-message hover toolbar with Copy, Regenerate (re-call agent with preceding user prompt), and Delete (persisted to backend) |
+| 📋 **Message Actions** | Per-message icon-only hover toolbar with Copy, Regenerate (re-call agent with preceding user prompt), and Delete with two-click confirmation (persisted to backend) |
 
 ---
 

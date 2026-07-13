@@ -12,6 +12,7 @@ function MessageBubble({ role, content, images, messageId, isLast, onRegenerate,
   const [copiedCode, setCopiedCode] = useState("");
   const [copiedMsg, setCopiedMsg] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const copyCode = async (code) => {
     await navigator.clipboard.writeText(code);
@@ -25,18 +26,30 @@ function MessageBubble({ role, content, images, messageId, isLast, onRegenerate,
     setTimeout(() => setCopiedMsg(false), 2000);
   };
 
+  const handleDeleteClick = () => {
+    if (confirmDelete) {
+      onDelete(messageId);
+      setConfirmDelete(false);
+    } else {
+      setConfirmDelete(true);
+      setTimeout(() => setConfirmDelete(false), 3000);
+    }
+  };
+
   const markdown = (content || "")
     .replace(/```review/gi, "```")
     .replace(/```text/gi, "```")
     .replace(/```[a-zA-Z0-9_-]+\s+id="[^"]*"/g, "```");
 
+  const showToolbar = hovered || copiedMsg || confirmDelete;
+
   return (
     <div
-      className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+      className={`group flex ${isUser ? "justify-end" : "justify-start"}`}
       onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseLeave={() => { setHovered(false); setConfirmDelete(false); }}
     >
-      <div className="flex flex-col gap-1 max-w-[92vw] md:max-w-[72%]">
+      <div className="flex flex-col gap-1.5 max-w-[92vw] md:max-w-[72%]">
         <div
           className={`w-fit max-w-full px-4 py-2.5 rounded-2xl break-words overflow-hidden leading-relaxed
           ${
@@ -134,12 +147,12 @@ function MessageBubble({ role, content, images, messageId, isLast, onRegenerate,
                       <span className="uppercase text-xs text-slate-400">{language}</span>
                       <button
                         onClick={() => copyCode(value)}
-                        className="flex items-center gap-1 text-xs"
+                        className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 transition-colors"
                       >
                         {copiedCode === value ? (
                           <>
-                            <Check size={14} />
-                            Copied
+                            <Check size={14} className="text-[#14b4dc]" />
+                            <span className="text-[#14b4dc]">Copied</span>
                           </>
                         ) : (
                           <>
@@ -172,46 +185,49 @@ function MessageBubble({ role, content, images, messageId, isLast, onRegenerate,
           </ReactMarkdown>
         </div>
 
-        {hovered && (
-          <div className={`flex items-center gap-1 ${isUser ? "justify-end" : "justify-start"} pl-1`}>
+        <div
+          className={`flex items-center gap-0.5 ${isUser ? "justify-end" : "justify-start"} transition-all duration-200 ${showToolbar ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1 pointer-events-none"}`}
+        >
+          <button
+            onClick={copyMessage}
+            title="Copy"
+            className={`flex items-center justify-center w-7 h-7 rounded-lg border-none transition-all duration-150 cursor-pointer
+              ${copiedMsg
+                ? "bg-[rgba(20,180,220,0.12)] text-[#14b4dc]"
+                : "bg-transparent text-slate-600 hover:bg-white/[0.06] hover:text-slate-300"
+              }`}
+          >
+            {copiedMsg ? <Check size={14} /> : <Copy size={14} />}
+          </button>
+
+          {!isUser && isLast && onRegenerate && (
             <button
-              onClick={copyMessage}
-              className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] text-slate-500 hover:text-slate-200 hover:bg-white/[0.06] transition-all duration-150 bg-transparent border-none cursor-pointer"
+              onClick={onRegenerate}
+              title="Regenerate"
+              className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-slate-600 hover:bg-white/[0.06] hover:text-[#14b4dc] transition-all duration-150 cursor-pointer"
             >
-              {copiedMsg ? (
-                <>
-                  <Check size={12} />
-                  Copied
-                </>
+              <RefreshCw size={14} />
+            </button>
+          )}
+
+          {messageId && onDelete && (
+            <button
+              onClick={handleDeleteClick}
+              title={confirmDelete ? "Click again to confirm" : "Delete"}
+              className={`flex items-center justify-center h-7 rounded-lg border-none transition-all duration-150 cursor-pointer
+                ${confirmDelete
+                  ? "bg-red-500/15 text-red-400 px-2 gap-1 w-auto"
+                  : "w-7 bg-transparent text-slate-600 hover:bg-white/[0.06] hover:text-red-400"
+                }`}
+            >
+              {confirmDelete ? (
+                <span className="text-[11px] font-medium whitespace-nowrap">Delete?</span>
               ) : (
-                <>
-                  <Copy size={12} />
-                  Copy
-                </>
+                <Trash2 size={14} />
               )}
             </button>
-
-            {!isUser && isLast && onRegenerate && (
-              <button
-                onClick={onRegenerate}
-                className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] text-slate-500 hover:text-[#14b4dc] hover:bg-white/[0.06] transition-all duration-150 bg-transparent border-none cursor-pointer"
-              >
-                <RefreshCw size={12} />
-                Regenerate
-              </button>
-            )}
-
-            {messageId && onDelete && (
-              <button
-                onClick={() => onDelete(messageId)}
-                className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] text-slate-500 hover:text-red-400 hover:bg-white/[0.06] transition-all duration-150 bg-transparent border-none cursor-pointer"
-              >
-                <Trash2 size={12} />
-                Delete
-              </button>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {lightboxSrc && (
