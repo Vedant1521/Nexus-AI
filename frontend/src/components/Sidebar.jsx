@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Plus, MessageSquare, Settings, LogOut, User, PenSquare, Menu, X, Coins, ConeIcon, CoinsIcon, MoreVertical, Pin, PinOff, Trash2, Edit2, Crown } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, MessageSquare, Settings, LogOut, User, PenSquare, Menu, X, Coins, ConeIcon, CoinsIcon, MoreVertical, Pin, PinOff, Trash2, Edit2, Crown, Search } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../utils/axios";
 import { setUserData } from "../redux/user.slice";
@@ -18,9 +18,45 @@ export default function Sidebar() {
   const [activeMenu, setActiveMenu] = useState(null);
   const [editingChatId, setEditingChatId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const { userData } = useSelector(state => state.user);
   const { conversations, selectedConversation } = useSelector(state => state.conversation);
   const dispatch = useDispatch();
+
+  const filteredConversations = useMemo(() => {
+    if (!searchQuery.trim()) return conversations;
+    const q = searchQuery.toLowerCase().trim();
+    return conversations.filter(c => c.title?.toLowerCase().includes(q));
+  }, [conversations, searchQuery]);
+
+  const groupedConversations = useMemo(() => {
+    const pinned = [];
+    const today = [];
+    const yesterday = [];
+    const older = [];
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+
+    for (const chat of filteredConversations) {
+      if (chat.isPinned && !searchQuery.trim()) {
+        pinned.push(chat);
+        continue;
+      }
+      const updated = new Date(chat.updatedAt);
+      if (updated >= startOfToday) {
+        today.push(chat);
+      } else if (updated >= startOfYesterday) {
+        yesterday.push(chat);
+      } else {
+        older.push(chat);
+      }
+    }
+
+    return { pinned, today, yesterday, older };
+  }, [filteredConversations, searchQuery]);
 
   const logout = async () => {
     try {
@@ -52,6 +88,7 @@ export default function Sidebar() {
 
   const handleSelectConversation = async (conversation) => {
     setMobileOpen(false);
+    setSearchQuery("");
     dispatch(setSelectedConversation(conversation));
     const messages = await getMessages(conversation._id);
     dispatch(setMessages(messages));
@@ -105,6 +142,112 @@ export default function Sidebar() {
     setActiveMenu(null);
   };
 
+  const renderChatItem = (chat) => {
+    const isActive = selectedConversation?._id === chat._id;
+    const isHov    = hovered === chat._id;
+    return (
+      <div
+        key={chat._id}
+        onClick={() => handleSelectConversation(chat)}
+        onMouseEnter={() => setHovered(chat._id)}
+        onMouseLeave={() => setHovered(null)}
+        className={`group relative flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-[10px] border transition-colors duration-150
+          ${isActive ? "bg-[rgba(20,180,220,0.08)] border-[rgba(20,180,220,0.15)]"
+          : isHov   ? "bg-[#132335] border-transparent"
+          :            "bg-transparent border-transparent"}`}
+      >
+        <div className={`flex items-center justify-center shrink-0 w-[28px] h-[28px] rounded-lg transition-colors duration-150
+          ${isActive ? "bg-[rgba(20,180,220,0.15)] text-[#14b4dc]" : "bg-white/[0.05] text-slate-500"}`}>
+          <MessageSquare size={13} />
+        </div>
+
+        <div className="flex-1 min-w-0 pr-6">
+          {editingChatId === chat._id ? (
+            <input
+              value={editingTitle}
+              onChange={(e) => setEditingTitle(e.target.value)}
+              onBlur={() => handleRenameSubmit(chat._id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleRenameSubmit(chat._id);
+                if (e.key === "Escape") setEditingChatId(null);
+              }}
+              className="bg-white/[0.06] border-none text-[13px] font-medium text-slate-100 px-2 py-1 rounded-lg outline-none w-full ring-1 ring-white/10 focus:ring-[#14b4dc]/40 transition-all"
+              autoFocus
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <p className={`text-[13px] font-medium truncate ${isActive ? "text-slate-100" : "text-slate-300"}`}>
+                {chat.title}
+              </p>
+              {chat.isPinned && (
+                <Pin size={10} className="text-[#14b4dc] shrink-0 rotate-45" />
+              )}
+            </div>
+          )}
+        </div>
+
+        {!editingChatId && (isHov || isActive || activeMenu === chat._id) && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveMenu(activeMenu === chat._id ? null : chat._id);
+            }}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-md border-none bg-transparent hover:bg-white/10 text-slate-400 hover:text-white cursor-pointer transition-all"
+          >
+            <MoreVertical size={13} />
+          </button>
+        )}
+
+        {activeMenu === chat._id && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="absolute right-2 top-9 z-50 w-36 bg-[#0f1e2e] border border-[rgba(20,180,220,0.12)] rounded-xl py-1.5 shadow-xl"
+          >
+            <button
+              onClick={() => handleTogglePin(chat)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-white border-none bg-transparent cursor-pointer"
+            >
+              {chat.isPinned ? (
+                <>
+                  <PinOff size={12} className="text-slate-500" />
+                  Unpin
+                </>
+              ) : (
+                <>
+                  <Pin size={12} className="text-slate-500" />
+                  Pin
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={() => {
+                setEditingChatId(chat._id);
+                setEditingTitle(chat.title);
+                setActiveMenu(null);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-white border-none bg-transparent cursor-pointer"
+            >
+              <Edit2 size={12} className="text-slate-500" />
+              Rename
+            </button>
+
+            <div className="my-1 border-t border-white/[0.06]" />
+
+            <button
+              onClick={() => handleDeleteConversation(chat._id)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 border-none bg-transparent cursor-pointer"
+            >
+              <Trash2 size={12} />
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const PanelIcon = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
@@ -129,7 +272,7 @@ export default function Sidebar() {
       </button>
 
       <div className="flex-1 flex flex-col items-center gap-1 overflow-y-auto w-full px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden mt-1">
-        {conversations.map((chat) => {
+        {filteredConversations.map((chat) => {
           const isActive = selectedConversation?._id === chat._id;
           return (
             <button
@@ -210,132 +353,65 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {
-        conversations.length==0? (
-        
-            <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">
-                 No recent conversations
-            </div>
-          )
-        :
-        (
-             
- <p className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">
-        Recents
-      </p>
+      {/* Search */}
+      <div className="px-4 pt-3 pb-1">
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search conversations..."
+            className="w-full bg-white/[0.04] border border-white/[0.06] text-[13px] text-slate-200 placeholder:text-slate-600 rounded-xl pl-9 pr-8 py-2.5 outline-none focus:border-[#14b4dc]/30 focus:bg-white/[0.06] transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors bg-transparent border-none cursor-pointer"
+            >
+              <X size={13} />
+            </button>
+          )}
+        </div>
+      </div>
 
-        )
-      }
-
-      {/* Section label */}
-     
       {/* Chat list */}
       <div className="flex-1 overflow-y-auto px-2.5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {conversations.map((chat) => {
-          const isActive = selectedConversation?._id === chat._id;
-          const isHov    = hovered === chat._id;
-          return (
-            <div
-              key={chat._id}
-              onClick={() => handleSelectConversation(chat)}
-              onMouseEnter={() => setHovered(chat._id)}
-              onMouseLeave={() => setHovered(null)}
-              className={`group relative flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-[10px] border transition-colors duration-150
-                ${isActive ? "bg-[rgba(20,180,220,0.08)] border-[rgba(20,180,220,0.15)]"
-                : isHov   ? "bg-[#132335] border-transparent"
-                :            "bg-transparent border-transparent"}`}
-            >
-              <div className={`flex items-center justify-center shrink-0 w-[28px] h-[28px] rounded-lg transition-colors duration-150
-                ${isActive ? "bg-[rgba(20,180,220,0.15)] text-[#14b4dc]" : "bg-white/[0.05] text-slate-500"}`}>
-                <MessageSquare size={13} />
-              </div>
-              
-              <div className="flex-1 min-w-0 pr-6">
-                {editingChatId === chat._id ? (
-                  <input
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.target.value)}
-                    onBlur={() => handleRenameSubmit(chat._id)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleRenameSubmit(chat._id);
-                      if (e.key === "Escape") setEditingChatId(null);
-                    }}
-                    className="bg-white/[0.06] border-none text-[13px] font-medium text-slate-100 px-2 py-1 rounded-lg outline-none w-full ring-1 ring-white/10 focus:ring-[#14b4dc]/40 transition-all"
-                    autoFocus
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                ) : (
-                  <div className="flex items-center gap-1.5">
-                    <p className={`text-[13px] font-medium truncate ${isActive ? "text-slate-100" : "text-slate-300"}`}>
-                      {chat.title}
-                    </p>
-                    {chat.isPinned && (
-                      <Pin size={10} className="text-[#14b4dc] shrink-0 rotate-45" />
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {!editingChatId && (isHov || isActive || activeMenu === chat._id) && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveMenu(activeMenu === chat._id ? null : chat._id);
-                  }}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 h-6 rounded-md border-none bg-transparent hover:bg-white/10 text-slate-400 hover:text-white cursor-pointer transition-all"
-                >
-                  <MoreVertical size={13} />
-                </button>
-              )}
-
-              {activeMenu === chat._id && (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  className="absolute right-2 top-9 z-50 w-36 bg-[#0f1e2e] border border-[rgba(20,180,220,0.12)] rounded-xl py-1.5 shadow-xl"
-                >
-                  <button
-                    onClick={() => handleTogglePin(chat)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-white border-none bg-transparent cursor-pointer"
-                  >
-                    {chat.isPinned ? (
-                      <>
-                        <PinOff size={12} className="text-slate-500" />
-                        Unpin
-                      </>
-                    ) : (
-                      <>
-                        <Pin size={12} className="text-slate-500" />
-                        Pin
-                      </>
-                    )}
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setEditingChatId(chat._id);
-                      setEditingTitle(chat.title);
-                      setActiveMenu(null);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-slate-300 hover:bg-white/[0.04] hover:text-white border-none bg-transparent cursor-pointer"
-                  >
-                    <Edit2 size={12} className="text-slate-500" />
-                    Rename
-                  </button>
-
-                  <div className="my-1 border-t border-white/[0.06]" />
-
-                  <button
-                    onClick={() => handleDeleteConversation(chat._id)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 border-none bg-transparent cursor-pointer"
-                  >
-                    <Trash2 size={12} />
-                    Delete
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {filteredConversations.length === 0 ? (
+          <div className="px-3 py-8 text-center">
+            <p className="text-[12px] text-slate-600">
+              {searchQuery ? `No conversations match "${searchQuery}"` : "No conversations yet"}
+            </p>
+          </div>
+        ) : searchQuery ? (
+          filteredConversations.map(chat => renderChatItem(chat))
+        ) : (
+          <>
+            {groupedConversations.pinned.length > 0 && (
+              <>
+                <p className="px-3 pt-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">Pinned</p>
+                {groupedConversations.pinned.map(chat => renderChatItem(chat))}
+              </>
+            )}
+            {groupedConversations.today.length > 0 && (
+              <>
+                <p className="px-3 pt-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">Today</p>
+                {groupedConversations.today.map(chat => renderChatItem(chat))}
+              </>
+            )}
+            {groupedConversations.yesterday.length > 0 && (
+              <>
+                <p className="px-3 pt-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">Yesterday</p>
+                {groupedConversations.yesterday.map(chat => renderChatItem(chat))}
+              </>
+            )}
+            {groupedConversations.older.length > 0 && (
+              <>
+                <p className="px-3 pt-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">Older</p>
+                {groupedConversations.older.map(chat => renderChatItem(chat))}
+              </>
+            )}
+          </>
+        )}
       </div>
 
       {/* Divider */}
