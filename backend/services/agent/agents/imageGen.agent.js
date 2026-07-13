@@ -103,7 +103,7 @@ ${state.prompt}
 
 📥 [Download Image](${downloadUrl})
 
-⏳ Link expires in 10 minutes.
+⏳ Link expires in 24 hours.
 `
 
     };

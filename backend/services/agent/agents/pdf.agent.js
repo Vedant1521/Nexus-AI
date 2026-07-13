@@ -185,7 +185,7 @@ response: `
 
 📥 [Download PDF](${downloadUrl})
 
-⏳ Link expires in 10 minutes.
+⏳ Link expires in 24 hours.
 `.trim()
 
     };

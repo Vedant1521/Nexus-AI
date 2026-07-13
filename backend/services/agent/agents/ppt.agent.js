@@ -1,6 +1,4 @@
 import pptxgen from "pptxgenjs";
-import fs from "fs";
-import path from "path";
 import { getModel } from "../utils/model.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
 import { getDownloadUrl } from "../utils/getDownloadUrl.js";
@@ -373,7 +371,7 @@ const downloadUrl =
 
 📥 [Download PPT](${downloadUrl})
 
-⏳ Link expires in 10 minutes.
+⏳ Link expires in 24 hours.
 `
 };
   } catch (error) {
