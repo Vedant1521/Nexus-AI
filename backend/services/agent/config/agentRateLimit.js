@@ -8,7 +8,8 @@ const LIMITS = {
   pdf: 5,
   ppt: 5,
   image: 3,
-  search:5
+  search: 5,
+  pdf_rag: 5
 };
 
 export const checkAgentLimit = async (userId, agent) => {

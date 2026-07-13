@@ -10,6 +10,8 @@ export const CREDIT_COST = {
 
   ppt:10,
 
-  image:10
+  image:10,
+
+  pdf_rag:5
 
 };

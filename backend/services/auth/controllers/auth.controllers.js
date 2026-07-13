@@ -317,7 +317,9 @@ export const deductCredits = async (req, res) => {
 
   ppt:10,
 
-  image:10
+  image:10,
+
+  pdf_rag:5
 
         };
 

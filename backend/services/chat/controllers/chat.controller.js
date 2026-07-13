@@ -154,3 +154,16 @@ export const deleteConversation = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const deleteMessage = async (req, res) => {
+  try {
+    const { messageId } = req.body;
+    if (!messageId) {
+      return res.status(400).json({ message: "messageId is required" });
+    }
+    await Message.findByIdAndDelete(messageId);
+    res.json({ success: true, message: "Message deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

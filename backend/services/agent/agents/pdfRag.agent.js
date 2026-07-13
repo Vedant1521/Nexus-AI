@@ -10,9 +10,24 @@ import {
 import { getModel }
 from "../utils/model.js";
 import { QdrantVectorStore } from "@langchain/qdrant";
+import { checkAgentLimit } from "../config/agentRateLimit.js";
+import { deductCredits } from "../utils/deductCredits.js";
+
 export const pdfRagAgent = async (state) => {
 
+  let collectionName = null;
+
   try {
+
+    await checkAgentLimit(
+      state.userId,
+      "pdf_rag"
+    );
+
+    await deductCredits(
+      state.userId,
+      "pdf_rag"
+    );
 
     const buffer =
       fs.readFileSync(
@@ -48,37 +63,38 @@ export const pdfRagAgent = async (state) => {
 
       ]);
 
-   const collectionName =
+    collectionName =
 `pdf-${Date.now()}`;
 
-const vectorStore =await createVectorStore(
+    const vectorStore = await createVectorStore(
 
-collectionName,
+      collectionName,
 
-docs
+      docs
 
-);
+    );
 
-const relevantDocs =
-await vectorStore.similaritySearch(
+    const relevantDocs =
+    await vectorStore.similaritySearch(
 
-    state.prompt,
+      state.prompt,
 
-    5
+      5
 
-);
-console.log(relevantDocs);
-const context =
-relevantDocs
+    );
 
-.map(doc=>doc.pageContent)
+    const context =
+    relevantDocs
 
-.join("\n\n");
-const llm =getModel("pdf-rag");
+    .map(doc=>doc.pageContent)
+
+    .join("\n\n");
+
+    const llm = getModel("pdf-rag");
 
     const messages=[
 
-new SystemMessage(`
+      new SystemMessage(`
 
 You are NexusAI PDF Assistant.
 
@@ -96,7 +112,7 @@ Rules:
 
 `),
 
-new HumanMessage(`
+      new HumanMessage(`
 
 Context:
 
@@ -107,53 +123,51 @@ Question:
 ${state.prompt}
 
 `)
-];
+    ];
 
 
-const response =
-await llm.invoke(
-    messages
-);
+    const response =
+    await llm.invoke(
+      messages
+    );
 
 
     return {
 
       ...state,
 
-      docs,
-
       response:
-response.content
+      response.content
     };
-
-    
-
-
 
   }
 
- finally{
+  finally {
 
-    try{
+    try {
 
+      if (state.file?.path) {
         fs.unlinkSync(
-            state.file.path
+          state.file.path
         );
+      }
 
-        await QdrantVectorStore.deleteCollection(
-
-            collectionName
-
-        );
+      if (collectionName) {
+        await QdrantVectorStore.deleteCollection({
+          collectionName,
+          url: process.env.QDRANT_URL,
+          apiKey: process.env.QDRANT_API_KEY
+        });
+      }
 
     }
 
-    catch(err){
+    catch(err) {
 
-        console.log(err.message);
+      console.log(err.message);
 
     }
 
-}
+  }
 
 };

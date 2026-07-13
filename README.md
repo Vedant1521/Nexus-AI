@@ -118,6 +118,10 @@ graph TB
 | 🛡️ **Rate Limiting** | Per-user, per-agent Redis-backed rate limiting with atomic INCR/EXPIRE operations |
 | 💰 **Credit System** | Granular per-agent credit costs with real-time balance propagation to the session cache |
 | 🚀 **One-Click Deploy** | Instantly deploy generated HTML/CSS/JS frontend projects to a live, public AWS S3 URL from the Artifact panel |
+| 🔎 **Conversation Search** | Client-side fuzzy search across conversation titles with date-grouped sections (Pinned, Today, Yesterday, Older) |
+| 🔄 **Auth Loading Gate** | Splash-screen loading state during session validation to eliminate login-page flash on refresh |
+| 🛑 **401 Auto-Logout** | Axios response interceptor that automatically clears session and redirects to login on 401 responses |
+| 📋 **Message Actions** | Per-message hover toolbar with Copy, Regenerate (re-call agent with preceding user prompt), and Delete (persisted to backend) |
 
 ---
 
@@ -198,7 +202,7 @@ nexus-ai/
 │   │   │   ├── index.js
 │   │   │   ├── Dockerfile
 │   │   │   ├── controllers/
-│   │   │   │   └── chat.controller.js   # CRUD conversations & messages
+│   │   │   │   └── chat.controller.js   # CRUD conversations, messages (create, list, save, delete)
 │   │   │   └── models/
 │   │   │       ├── conversation.model.js
 │   │   │       └── message.model.js     # Messages with artifacts & images
@@ -248,17 +252,17 @@ nexus-ai/
 │   ├── vite.config.js
 │   ├── package.json
 │   └── src/
-│       ├── App.jsx                  # Router setup
+│       ├── App.jsx                  # Router setup with auth loading gate + splash screen
 │       ├── main.jsx                 # Redux Provider + React entry
 │       ├── pages/
 │       │   └── Home.jsx             # Main layout (Sidebar + Chat + Artifacts)
 │       ├── components/
-│       │   ├── Sidebar.jsx          # Conversation list, new chat, logout
+│       │   ├── Sidebar.jsx          # Conversation list with search, date grouping, new chat, logout
 │       │   ├── Navbar.jsx           # Top bar
 │       │   ├── ChatArea.jsx         # Chat container
 │       │   ├── ChatInput.jsx        # Prompt input, agent selector, voice, file upload
 │       │   ├── MessageList.jsx      # Message rendering
-│       │   ├── MessageBubble.jsx    # Individual message with markdown rendering
+│       │   ├── MessageBubble.jsx    # Message rendering + hover toolbar (copy, regenerate, delete)
 │       │   ├── ArtifactPanel.jsx    # Code editor + live preview panel
 │       │   ├── AiBanner.jsx         # Welcome banner with suggested prompts
 │       │   ├── BillingDrawer.jsx    # Plans & credits drawer with Razorpay checkout
@@ -272,11 +276,11 @@ nexus-ai/
 │       │   ├── agent.api.js         # POST /api/agent/chat
 │       │   ├── billing.api.js       # POST /api/billing/create-order
 │       │   ├── conversation.api.js  # Conversation CRUD
-│       │   └── message.api.js       # Message fetch
+│       │   └── message.api.js       # Message fetch, save, delete
 │       ├── hooks/
-│       │   └── useCurrentUser.jsx   # Auto-fetch session user on mount
+│       │   └── useCurrentUser.jsx   # Fetch session user on mount with auth loading state
 │       └── utils/
-│           ├── axios.js             # Axios instance with credentials
+│           ├── axios.js             # Axios instance with credentials + 401 auto-logout interceptor
 │           └── detectLanguage.js    # File extension → Monaco language mapping
 ```
 
@@ -449,6 +453,7 @@ All requests go through the **API Gateway** at `http://localhost:8000`.
 | `GET` | `/api/chat/conversations` | ✅ | List all conversations (sorted by `updatedAt` desc). |
 | `GET` | `/api/chat/get-messages/:id` | ✅ | Get all messages for a conversation. |
 | `POST` | `/api/chat/save-message` | ✅ | Save a message (used internally by agent service). |
+| `POST` | `/api/chat/delete-message` | ✅ | Delete a message by ID. |
 | `PATCH` | `/api/chat/update-conversation` | ✅ | Update conversation title. |
 
 ### Agent
@@ -520,7 +525,7 @@ The agent service compiles a **directed acyclic graph** using LangGraph's `State
 | **PPT** | Groq (Llama 3.3 70B) | Generates 8+ slide PPTX presentations via PPTXGenJS with cover, bullet, stat, and conclusion slide types. Uploaded to S3. |
 | **Image** | Groq (Llama 3.3 70B) + Pollinations.ai | LLM enhances the prompt → Pollinations.ai generates the image → uploaded to S3. |
 | **Vision** | Google Gemini 2.5 Flash | Multimodal image analysis — text extraction, chart interpretation, visual Q&A. Base64 encoding. |
-| **PDF RAG** | Groq (Llama 3.3 70B) | Ephemeral RAG: parse PDF → chunk (1000 chars, 200 overlap) → embed (gemini-embedding-001) → Qdrant vector search (top-5) → contextual answer → cleanup. |
+| **PDF RAG** | Groq (Llama 3.3 70B) | Ephemeral RAG: parse PDF → chunk (1000 chars, 200 overlap) → embed (gemini-embedding-001) → Qdrant vector search (top-5) → contextual answer → deterministic cleanup (file unlink + collection deletion). Rate-limited (5 req/min) and credit-metered (5 credits/request). |
 
 ### Conversation Memory
 
@@ -551,6 +556,7 @@ The agent service compiles a **directed acyclic graph** using LangGraph's `State
 | PDF | 10 |
 | PPT | 10 |
 | Image | 10 |
+| PDF RAG | 5 |
 
 ### Payment Flow
 
@@ -605,6 +611,7 @@ Each agent has an independent **per-user** rate limit enforced via Redis:
 | PPT | 5 |
 | Image | 3 |
 | Search | 5 |
+| PDF RAG | 5 |
 
 ### Implementation
 
@@ -621,9 +628,9 @@ Each agent has an independent **per-user** rate limit enforced via Redis:
 
 | Component | Purpose |
 |---|---|
-| **Sidebar** | Conversation history, new chat, user profile, logout, billing drawer trigger |
+| **Sidebar** | Conversation history with client-side search and date-grouped sections (Pinned, Today, Yesterday, Older), new chat, user profile, logout, billing drawer trigger |
 | **ChatInput** | Prompt input with agent selector pills (Auto, Chat, Coding, PDF, PPT, Image, Search), voice input toggle, file attachment |
-| **MessageBubble** | Renders user/assistant messages with `react-markdown`, `remark-gfm`, and `react-syntax-highlighter` |
+| **MessageBubble** | Renders user/assistant messages with `react-markdown`, `remark-gfm`, and `react-syntax-highlighter`. Hover toolbar with Copy (clipboard), Regenerate (re-call agent), and Delete (backend-persisted) actions |
 | **ArtifactPanel** | Collapsible side panel with Monaco Editor (code view) and sandboxed iframe (live preview). File tab navigation for multi-file projects. |
 | **BillingDrawer** | Slide-out drawer showing current plan, credit usage bar, and upgrade options with integrated Razorpay checkout |
 
@@ -631,9 +638,9 @@ Each agent has an independent **per-user** rate limit enforced via Redis:
 
 | Slice | State |
 |---|---|
-| `user` | `userData` (session user object) |
+| `user` | `userData`, `isAuthLoading`, `authError` |
 | `conversation` | `conversations[]`, `selectedConversation` |
-| `message` | `messages[]`, `artifacts[]`, `isLoading` |
+| `message` | `messages[]`, `artifacts[]`, `isLoading` — actions: `setMessages`, `addMessage`, `removeMessage`, `updateMessage`, `setIsLoading`, `setArtifacts` |
 
 ---
 

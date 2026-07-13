@@ -1,8 +1,9 @@
 import MessageBubble from "./MessageBubble";
 
 import { useDispatch, useSelector } from "react-redux";
-import { getMessages } from "../features/message.api";
-import { setArtifacts, setMessages } from "../redux/message.slice";
+import { getMessages, deleteMessageApi } from "../features/message.api";
+import { sendPrompt } from "../features/agent.api";
+import { setArtifacts, setMessages, setIsLoading, removeMessage, updateMessage } from "../redux/message.slice";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 function NeuralPulse() {
@@ -87,21 +88,23 @@ export default function MessageList({ onSelectSuggestion }) {
   const { messages, isLoading } = useSelector(state => state.message);
   const { selectedConversation } = useSelector(state => state.conversation);
   const dispatch = useDispatch();
-useEffect(() => {
 
-  requestAnimationFrame(() => {
+  useEffect(() => {
 
-    bottomRef.current?.scrollIntoView({
+    requestAnimationFrame(() => {
 
-      behavior: "smooth",
+      bottomRef.current?.scrollIntoView({
 
-      block: "end"
+        behavior: "smooth",
+
+        block: "end"
+
+      });
 
     });
 
-  });
+  }, [messages.length, isLoading]);
 
-}, [messages.length, isLoading]);
   useEffect(() => {
     if (selectedConversation?.title === "New Chat") return;
     const get = async () => {
@@ -129,6 +132,46 @@ if (latestArtifactMessage) {
     get();
   }, [selectedConversation?._id]);
 
+  const handleDelete = async (messageId) => {
+    dispatch(removeMessage(messageId));
+    try {
+      await deleteMessageApi(messageId);
+    } catch (error) {
+      console.error("Failed to delete message:", error);
+    }
+  };
+
+  const handleRegenerate = async (assistantIndex) => {
+    const userMessage = [...messages].slice(0, assistantIndex).reverse().find(m => m.role === "user");
+    if (!userMessage || !selectedConversation) return;
+
+    dispatch(setIsLoading(true));
+
+    try {
+      const formData = new FormData();
+      formData.append("conversationId", selectedConversation._id);
+      formData.append("prompt", userMessage.content);
+      formData.append("agent", "auto");
+
+      const data = await sendPrompt(formData);
+
+      dispatch(updateMessage({
+        index: assistantIndex,
+        content: data.answer,
+        images: data.images,
+        artifacts: data.artifacts || []
+      }));
+
+      if (data.artifacts) {
+        dispatch(setArtifacts(data.artifacts));
+      }
+    } catch (error) {
+      console.error("Regenerate failed:", error);
+    } finally {
+      dispatch(setIsLoading(false));
+    }
+  };
+
   return (
     <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {messages.length === 0 && !isLoading ? (
@@ -154,12 +197,20 @@ if (latestArtifactMessage) {
         <>
           {messages.map((msg, i) => (
             <motion.div
-              key={i}
+              key={msg._id || i}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.22, ease: "easeOut" }}
             >
-              <MessageBubble role={msg.role} content={msg.content} images={msg?.images || []}/>
+              <MessageBubble
+                role={msg.role}
+                content={msg.content}
+                images={msg?.images || []}
+                messageId={msg._id}
+                isLast={i === messages.length - 1}
+                onRegenerate={() => handleRegenerate(i)}
+                onDelete={handleDelete}
+              />
             </motion.div>
           ))}
 
