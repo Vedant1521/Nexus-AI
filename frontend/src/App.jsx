@@ -32,30 +32,35 @@ function PublicRoute({ children }) {
   return children
 }
 
+import { Toaster } from 'sonner'
+
 function App() {
   useCurrentUser()
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <LoginPage />
-            </PublicRoute>
-          }
-        />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <Toaster theme="dark" position="bottom-right" toastOptions={{ style: { background: '#0f1e2e', border: '1px solid rgba(20,180,220,0.12)', color: '#f1f5f9' } }} />
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <LoginPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </>
   )
 }
 

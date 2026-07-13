@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { toast } from 'sonner';
+import { motion } from "framer-motion";
 import { Send, Paperclip,  Square, Zap, MessageSquare, Code2, Presentation, Image as ImageIcon, Globe, FileText,X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { addMessage, setArtifacts, setIsLoading } from "../redux/message.slice";
@@ -10,7 +12,6 @@ import { addConversation, updateConversationState, setSelectedConversation } fro
 import { useRef } from "react";
 
 export default function ChatInput({
-  setBanner,
   value,
   setValue
 }) {
@@ -22,6 +23,14 @@ const recognitionRef = useRef(null);
   const { selectedConversation } = useSelector(state => state.conversation);
    const { isLoading } = useSelector(state => state.message);
 const fileRef = useRef(null);
+const textareaRef = useRef(null);
+
+useEffect(() => {
+  if (textareaRef.current) {
+    textareaRef.current.style.height = "auto";
+    textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
+  }
+}, [value]);
 
 const [
 
@@ -245,21 +254,7 @@ if(data.artifacts){
   );
 }}
 catch(error){
-
-  setBanner({
-
-    open:true,
-
-    title:
-      error.response?.data?.title ||
-      "Something went wrong",
-
-    message:
-      error.response?.data?.message ||
-      "Please try again."
-
-  });
-
+  toast.error(error.response?.data?.message || "Something went wrong. Please try again.");
 }
   finally {
        dispatch(setIsLoading(false));
@@ -273,63 +268,37 @@ catch(error){
   };
 
   return (
-   <div className="w-full overflow-hidden px-3 md:px-5 py-4 border-t border-[rgba(20,180,220,0.08)] bg-[#060d14]">
-      <div className="flex flex-col gap-2 bg-white/[0.03] border border-white/[0.07] rounded-2xl px-4 pt-3.5 pb-3">
+    <div className="w-full overflow-hidden px-3 md:px-5 py-3 bg-[var(--bg-base)]">
+      <div className="flex flex-col gap-1.5 bg-[var(--bg-surface)] border border-[var(--border)] rounded-xl px-4 pt-2.5 pb-2 shadow-premium focus-within:ring-2 focus-within:ring-[var(--accent-dim)] focus-within:border-[var(--accent-glow)] transition-all duration-300">
 
-
-    <div className="flex w-[80%] gap-2 pr-2 flex-wrap">
-
-    {agents.map((agent) => {
-
-      const Icon = agent.icon;
-      const isActive = selectedAgent === agent.id;
-
-      return (
-
-        <button
-          key={agent.id}
-          onClick={() => setSelectedAgent(agent.id)}
-          className={`
-            flex-shrink-0
-            
-            inline-flex
-            items-center
-            gap-1.5
-            px-3
-            py-2
-            rounded-full
-            text-xs
-            font-medium
-            border
-            transition-all
-
-            ${
-              isActive
-                ? "bg-gradient-to-r from-[#14b4dc] to-[#0d9488] text-white border-transparent shadow-[0_1px_8px_rgba(20,180,220,.35)]"
-                : "bg-white/[0.03] text-slate-400 border-white/[0.06] hover:bg-white/[0.07]"
-            }
-          `}
-        >
-
-          <Icon
-            size={14}
-            className={
-              isActive
-                ? "text-white"
-                : "text-slate-500"
-            }
-          />
-
-          {agent.label}
-
-        </button>
-
-      );
-
-    })}
-
-
-</div>
+    <div className="flex w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="inline-flex items-center gap-1 p-1 bg-[var(--bg-elevated)] border border-[var(--border-strong)] rounded-lg shadow-inner shrink-0">
+        {agents.map((agent) => {
+          const Icon = agent.icon;
+          const isActive = selectedAgent === agent.id;
+          return (
+            <button
+              key={agent.id}
+              onClick={() => setSelectedAgent(agent.id)}
+              className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-semibold tracking-wide uppercase transition-colors cursor-pointer group"
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="activeAgent"
+                  className="absolute inset-0 bg-[var(--bg-hover)] rounded-md border border-[var(--border-strong)] shadow-sm"
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              <Icon size={13} className={`relative z-10 transition-colors ${isActive ? "text-[var(--accent)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]"}`} />
+              <span className={`relative z-10 transition-colors ${isActive ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]"}`}>
+                {agent.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
 
 {
 
@@ -439,13 +408,13 @@ className="text-slate-500 hover:text-white"
 
         {/* Textarea */}
         <textarea
+          ref={textareaRef}
           value={value}
           onChange={e => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={
-placeholders[selectedAgent]
-}
-          rows={3}
+          placeholder={placeholders[selectedAgent]}
+          rows={1}
+          style={{ minHeight: "24px", maxHeight: "150px" }}
           disabled={isLoading}
           className="w-full bg-transparent outline-none resize-none text-[14px] text-slate-200 placeholder:text-slate-600 leading-relaxed [scrollbar-width:none] [&::-webkit-scrollbar]:hidden disabled:opacity-50"
         />

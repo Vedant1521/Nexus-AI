@@ -20,6 +20,12 @@ export const deductCredits = async (
 
                 agent
 
+            },
+
+            {
+                headers: {
+                    "x-internal-key": process.env.INTERNAL_API_KEY
+                }
             }
 
         );

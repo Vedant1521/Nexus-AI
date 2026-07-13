@@ -6,7 +6,7 @@ import { sendPrompt } from "../features/agent.api";
 import { setArtifacts, setMessages, setIsLoading, removeMessage, updateMessage } from "../redux/message.slice";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Code, FileText, Lightbulb, Sparkles, Bot } from "lucide-react";
 function NeuralPulse() {
   return (
     <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
@@ -120,32 +120,7 @@ export default function MessageList({ onSelectSuggestion }) {
     }
   }, [messages.length, isLoading]);
 
-  useEffect(() => {
-    if (selectedConversation?.title === "New Chat") return;
-    const get = async () => {
-      const data = await getMessages(selectedConversation?._id);
-      dispatch(setMessages(data));
-      const latestArtifactMessage =
-  [...data]
-    .reverse()
-    .find(
-      msg =>
-        msg.artifacts &&
-        msg.artifacts.length > 0
-    );
 
-if (latestArtifactMessage) {
-
-  dispatch(
-    setArtifacts(
-      latestArtifactMessage.artifacts
-    )
-  );
-
-}
-    };
-    get();
-  }, [selectedConversation?._id]);
 
   const handleDelete = async (messageId) => {
     dispatch(removeMessage(messageId));
@@ -192,26 +167,55 @@ if (latestArtifactMessage) {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="nexus-scrollbar h-full overflow-y-auto px-6 py-6 space-y-5"
+        className="nexus-scrollbar h-full overflow-y-auto px-6 pt-[72px] pb-6 space-y-5"
       >
       {messages.length === 0 && !isLoading ? (
-        <div className="h-full flex flex-col items-center justify-center gap-4 text-center">
-          <div className="flex flex-col gap-1.5">
-            <h1 className="text-[20px] font-semibold text-slate-200 tracking-tight">NexusAI</h1>
-            <h3 className="text-[15px] font-semibold text-slate-400 tracking-tight">How can I help you?</h3>
-            <p className="text-[13px] text-slate-600 max-w-[260px] leading-relaxed">Ask me anything — code, ideas, explanations, or just a quick question.</p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-2 mt-1">
-            {["Write a Netflix clone", "Explain Redis", "Build a dashboard"].map((s) => (
-              <button
-                key={s}
-                onClick={() => onSelectSuggestion && onSelectSuggestion(s)}
-                className="text-[12px] text-slate-400 bg-white/[0.04] border border-white/[0.07] px-3.5 py-1.5 rounded-lg hover:bg-white/[0.08] hover:text-slate-200 transition-colors duration-150 cursor-pointer"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+        <div className="min-h-full flex flex-col items-center px-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="flex flex-col items-center text-center max-w-2xl w-full mt-2 md:mt-4 mb-auto pb-4"
+          >
+            <div className="w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br from-[#14b4dc]/20 to-[#0d9488]/20 flex items-center justify-center border border-[#14b4dc]/30 shadow-[0_0_30px_rgba(20,180,220,0.15)]">
+              <Bot size={32} className="text-[#14b4dc]" />
+            </div>
+            
+            <h1 className="text-3xl md:text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-400 tracking-tight mb-3">
+              How can I help you today?
+            </h1>
+            <p className="text-[15px] text-slate-500 max-w-md leading-relaxed mb-10">
+              I'm NexusAI, your advanced assistant. Ask me to write code, analyze documents, or brainstorm ideas.
+            </p>
+
+            <div className="bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border)] p-3 rounded-2xl shadow-premium w-full max-w-3xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {[
+                  { title: "Analyze a document", desc: "Upload a PDF and ask questions", icon: FileText, color: "text-[var(--accent)]", bg: "bg-[var(--accent-dim)]" },
+                  { title: "Write a React app", desc: "Generate complete frontend code", icon: Code, color: "text-[var(--accent)]", bg: "bg-[var(--accent-dim)]" },
+                  { title: "Explain a concept", desc: "Break down complex topics simply", icon: Lightbulb, color: "text-[var(--accent)]", bg: "bg-[var(--accent-dim)]" },
+                  { title: "Brainstorm ideas", desc: "Get creative solutions and angles", icon: Sparkles, color: "text-[var(--accent)]", bg: "bg-[var(--accent-dim)]" }
+                ].map((s, i) => (
+                  <motion.button
+                    key={i}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.1, ease: "easeOut" }}
+                    onClick={() => onSelectSuggestion && onSelectSuggestion(s.title)}
+                    className="flex items-start gap-4 p-4 text-left rounded-xl bg-transparent border border-[var(--border)] hover:border-[var(--accent-glow)] hover:bg-[var(--accent-dim)] transition-colors duration-200 group cursor-pointer"
+                  >
+                    <div className={`p-2.5 rounded-lg ${s.bg}`}>
+                      <s.icon size={18} className={s.color} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--accent)] tracking-tight">{s.title}</h3>
+                      <p className="text-xs text-[var(--text-secondary)] mt-0.5">{s.desc}</p>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         </div>
       ) : (
         <>

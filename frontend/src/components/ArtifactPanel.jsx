@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import Editor, { DiffEditor } from "@monaco-editor/react";
 import { FiCode } from "react-icons/fi";
 import { detectLanguage } from "../utils/detectLanguage";
-import { Code2, Eye, PanelRightClose, PanelRightOpen, X, Copy, Check, GitCompare, RotateCcw, History, ChevronDown, Globe } from "lucide-react";
+import { Code2, Eye, PanelRightClose, PanelRightOpen, X, Copy, Check, GitCompare, RotateCcw, History, ChevronDown, Globe, MoreVertical } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { addMessage, setArtifacts } from "../redux/message.slice";
 import { saveMessageApi } from "../features/message.api";
@@ -30,6 +30,7 @@ export default function ArtifactPanel() {
   const [selectedVersionIndex, setSelectedVersionIndex] = useState(-1);
   const [showDiff, setShowDiff] = useState(false);
   const [versionMenuOpen, setVersionMenuOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [deploying, setDeploying] = useState(false);
   const [deployedUrl, setDeployedUrl] = useState("");
 
@@ -46,9 +47,12 @@ export default function ArtifactPanel() {
     setDeployedUrl("");
   }, [selectedVersionIndex, activeFile]);
 
-  // Close version dropdown menu when clicking anywhere else
+  // Close dropdown menus when clicking anywhere else
   useEffect(() => {
-    const handleOutsideClick = () => setVersionMenuOpen(false);
+    const handleOutsideClick = () => {
+      setVersionMenuOpen(false);
+      setMoreMenuOpen(false);
+    };
     window.addEventListener("click", handleOutsideClick);
     return () => window.removeEventListener("click", handleOutsideClick);
   }, []);
@@ -205,54 +209,69 @@ ${htmlFile?.content || ""}
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          {/* Restore Button (only if viewing an older version) */}
-          {selectedVersionIndex < allArtifactVersions.length - 1 && (
+          {/* More Actions Dropdown */}
+          <div className="relative shrink-0 flex items-center">
             <button
-              onClick={handleRestoreVersion}
-              className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold text-[#14b4dc] hover:text-[#22c0e8] bg-[#14b4dc]/10 border border-[#14b4dc]/20 hover:bg-[#14b4dc]/15 rounded-lg transition-colors cursor-pointer shrink-0"
-              title="Restore this version as latest"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMoreMenuOpen(!moreMenuOpen);
+              }}
+              className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/[0.05] transition-colors duration-150 active:scale-[0.97] cursor-pointer"
+              title="More actions"
             >
-              <RotateCcw size={12} />
-              <span>Restore</span>
+              <MoreVertical size={14} />
             </button>
-          )}
 
-          {/* Diff Button (only in code tab & if we have a previous version) */}
-          {tab === "code" && allArtifactVersions.length > 1 && (
-            <button
-              onClick={() => setShowDiff(!showDiff)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium rounded-lg transition-all border shrink-0 cursor-pointer
-                ${showDiff 
-                  ? "bg-gradient-to-br from-[#14b4dc] to-[#0d9488] text-white border-transparent shadow-[0_1px_8px_rgba(20,180,220,0.25)]" 
-                  : "bg-transparent text-slate-400 border-white/[0.06] hover:bg-white/[0.05] hover:text-slate-200"
-                }`}
-              title="Toggle side-by-side diff view"
-            >
-              <GitCompare size={12} />
-              <span>Diff</span>
-            </button>
-          )}
+            {moreMenuOpen && (
+              <div 
+                onClick={(e) => e.stopPropagation()}
+                className="absolute right-0 top-9 z-50 w-40 bg-[#0f1e2e] border border-[rgba(20,180,220,0.12)] rounded-xl py-1.5 shadow-xl"
+              >
+                {/* Copy button */}
+                {tab === "code" && !showDiff && (
+                  <button
+                    onClick={() => { handleCopy(); setMoreMenuOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3.5 py-2 text-left text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                  >
+                    {copied ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+                    {copied ? "Copied" : "Copy Code"}
+                  </button>
+                )}
+                
+                {/* Diff Button */}
+                {tab === "code" && allArtifactVersions.length > 1 && (
+                  <button
+                    onClick={() => { setShowDiff(!showDiff); setMoreMenuOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3.5 py-2 text-left text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
+                  >
+                    <GitCompare size={13} className={showDiff ? "text-[#14b4dc]" : ""} />
+                    {showDiff ? "Hide Diff" : "Show Diff"}
+                  </button>
+                )}
 
-          {/* Copy button — only in code tab & not showing diff */}
-          {tab === "code" && !showDiff && (
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-200 hover:bg-white/[0.05] rounded-lg transition-colors duration-150 bg-transparent border-none cursor-pointer"
-            >
-              {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
-              {copied ? "Copied" : "Copy"}
-            </button>
-          )}
+                {/* Restore Button */}
+                {selectedVersionIndex < allArtifactVersions.length - 1 && (
+                  <button
+                    onClick={() => { handleRestoreVersion(); setMoreMenuOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3.5 py-2 text-left text-xs font-medium text-[#14b4dc] hover:text-[#22c0e8] hover:bg-[#14b4dc]/10 transition-colors cursor-pointer border-t border-[rgba(20,180,220,0.1)] mt-1 pt-2"
+                  >
+                    <RotateCcw size={13} />
+                    Restore Version
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Deploy Button */}
           {canPreview && (
             <button
               onClick={onDeployClick}
               disabled={deploying}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all border shrink-0 cursor-pointer disabled:opacity-50
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-200 active:scale-[0.97] border shrink-0 cursor-pointer disabled:opacity-50
                 ${deployedUrl 
                   ? "bg-green-500/10 border-green-500/20 text-green-400 hover:bg-green-500/15" 
-                  : "bg-[#14b4dc]/10 border border-[#14b4dc]/20 text-[#14b4dc] hover:bg-[#14b4dc]/15"
+                  : "bg-[#14b4dc]/10 border border-[#14b4dc]/20 text-[#14b4dc] hover:bg-[#14b4dc]/15 shadow-[0_0_10px_rgba(20,180,220,0.05)]"
                 }`}
               title={deployedUrl ? "Click to open deployed site" : "Deploy static site to live hosting"}
             >
@@ -323,7 +342,10 @@ ${htmlFile?.content || ""}
               >
                 {f.name}
                 {activeFile === index && (
-                  <motion.div layoutId="filetab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#14b4dc] to-[#0d9488] rounded-t-full" />
+                  <>
+                    <motion.div layoutId="filetab-bg" className="absolute inset-0 bg-gradient-to-t from-[#14b4dc]/10 to-transparent pointer-events-none" />
+                    <motion.div layoutId="filetab" className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#14b4dc] shadow-[0_0_8px_#14b4dc]" />
+                  </>
                 )}
               </button>
             ))}

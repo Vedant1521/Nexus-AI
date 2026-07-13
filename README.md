@@ -208,6 +208,8 @@ nexus-ai/
 │   │   │   │   └── auth.controllers.js  # login, logout, updatePlan, deductCredits
 │   │   │   ├── models/
 │   │   │   │   └── user.model.js    # User schema (plan, credits, timestamps)
+│   │   │   ├── middlewares/
+│   │   │   │   └── verifyInternalKey.js  # x-internal-key header validation
 │   │   │   └── routes/
 │   │   ├── chat/                    # Chat Service (:8002)
 │   │   │   ├── index.js
@@ -327,6 +329,7 @@ BILLING_SERVICE="http://localhost:8004"
 ```env
 PORT=8001
 MONGODB_URL=<your-mongodb-connection-string>
+INTERNAL_API_KEY=<your-shared-internal-service-key>
 ```
 
 ### Chat Service (`backend/services/chat/.env`)
@@ -354,6 +357,7 @@ AWS_BUCKET_NAME=<your-s3-bucket-name>
 CHAT_SERVICE=http://localhost:8002
 AUTH_SERVICE=http://localhost:8001
 GATEWAY_URL=http://localhost:8000
+INTERNAL_API_KEY=<your-shared-internal-service-key>
 ```
 
 ### Billing Service (`backend/services/billing/.env`)
@@ -364,6 +368,7 @@ MONGODB_URL=<your-mongodb-connection-string>
 AUTH_SERVICE="http://localhost:8001"
 RAZORPAY_KEY_ID=<your-razorpay-key-id>
 RAZORPAY_KEY_SECRET=<your-razorpay-key-secret>
+INTERNAL_API_KEY=<your-shared-internal-service-key>
 ```
 
 ### Frontend (`frontend/.env`)
@@ -491,6 +496,8 @@ All requests go through the **API Gateway** at `http://localhost:8000`.
 | `POST` | `/api/billing/verify-payment` | ✅ | Verify Razorpay payment signature (HMAC-SHA256). |
 
 ### Internal (Service-to-Service)
+
+> 🔒 All `/internal/*` endpoints are protected by the `verifyInternalKey` middleware. Callers must include a valid `x-internal-key` header matching the shared `INTERNAL_API_KEY` environment variable. Requests without a valid key receive a `403 Forbidden` response.
 
 | Method | Endpoint | Service | Description |
 |---|---|---|---|
@@ -643,6 +650,15 @@ Every protected route goes through the `protect` middleware:
 - **Helmet** middleware sets security headers (CSP, HSTS, X-Frame-Options, etc.)
 - **CORS** restricted to `http://localhost:5173` with credentials enabled
 - No raw tokens or passwords are ever forwarded to downstream services
+
+### Service-to-Service Authentication (Zero-Trust)
+
+Internal endpoints (`/internal/update-plan`, `/internal/deduct-credits`) are protected by a shared `INTERNAL_API_KEY`:
+
+1. A `verifyInternalKey` middleware on the auth service validates the `x-internal-key` request header
+2. If the header is missing or does not match `process.env.INTERNAL_API_KEY`, the request is rejected with `403 Forbidden`
+3. The **billing** and **agent** services include this header in all cross-service HTTP calls
+4. The same `INTERNAL_API_KEY` value must be configured in the `.env` of auth, agent, and billing services
 
 ---
 

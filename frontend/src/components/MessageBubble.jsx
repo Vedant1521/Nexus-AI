@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import { FiExternalLink, FiX } from "react-icons/fi";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { toast } from "sonner";
 import { Copy, Check, RefreshCw, Trash2 } from "lucide-react";
 
 function MessageBubble({ role, content, images, messageId, isLast, onRegenerate, onDelete }) {
@@ -17,12 +18,14 @@ function MessageBubble({ role, content, images, messageId, isLast, onRegenerate,
   const copyCode = async (code) => {
     await navigator.clipboard.writeText(code);
     setCopiedCode(code);
+    toast.success("Code copied to clipboard");
     setTimeout(() => setCopiedCode(""), 2000);
   };
 
   const copyMessage = async () => {
     await navigator.clipboard.writeText(content || "");
     setCopiedMsg(true);
+    toast.success("Message copied to clipboard");
     setTimeout(() => setCopiedMsg(false), 2000);
   };
 
@@ -45,17 +48,17 @@ function MessageBubble({ role, content, images, messageId, isLast, onRegenerate,
 
   return (
     <div
-      className={`group flex ${isUser ? "justify-end" : "justify-start"}`}
+      className={`group flex w-full ${isUser ? "justify-end" : "justify-start"}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); setConfirmDelete(false); }}
     >
-      <div className="flex flex-col gap-1.5 max-w-[92vw] md:max-w-[72%]">
+      <div className={`flex flex-col gap-1.5 ${isUser ? "max-w-[92vw] md:max-w-[72%]" : "w-full"}`}>
         <div
-          className={`w-fit max-w-full px-4 py-2.5 rounded-2xl break-words overflow-hidden leading-relaxed
+          className={`max-w-full break-words overflow-hidden leading-7
           ${
             isUser
-              ? "bg-gradient-to-br from-[#14b4dc] to-[#0d9488] text-white rounded-tr-sm"
-              : " text-slate-200 rounded-tl-sm"
+              ? "w-fit px-5 py-3 bg-gradient-to-br from-[#14b4dc] to-[#0d9488] text-white rounded-xl rounded-tr-sm shadow-[0_4px_20px_rgba(20,180,220,0.15)]"
+              : "w-full py-1 text-slate-200"
           }`}
         >
           {images && images.length > 0 && (

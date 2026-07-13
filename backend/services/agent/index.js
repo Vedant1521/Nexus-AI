@@ -12,12 +12,19 @@ app.use("/",router);
 app.use((err, req, res, next) => {
 
   console.error(err);
+  
+  let status = err.status || 500;
+  
+  // Prevent frontend from interpreting external API auth errors (e.g. Qdrant 401) as a user session expiration
+  if (status === 401) {
+    status = 500;
+  }
 
   if (err.status) {
 
     return res
-      .status(err.status)
-      .json(err.data);
+      .status(status)
+      .json(err.data || { success: false, message: err.message });
 
   }
 

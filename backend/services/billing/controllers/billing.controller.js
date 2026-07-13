@@ -171,6 +171,12 @@ export const verifyPayment = async (req, res) => {
 
         credits: payment.credits
 
+    },
+
+    {
+        headers: {
+            "x-internal-key": process.env.INTERNAL_API_KEY
+        }
     }
 
 );

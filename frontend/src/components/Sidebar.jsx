@@ -151,9 +151,9 @@ export default function Sidebar() {
         onClick={() => handleSelectConversation(chat)}
         onMouseEnter={() => setHovered(chat._id)}
         onMouseLeave={() => setHovered(null)}
-        className={`group relative flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-[10px] border transition-colors duration-150
-          ${isActive ? "bg-[rgba(20,180,220,0.08)] border-[rgba(20,180,220,0.15)]"
-          : isHov   ? "bg-[#132335] border-transparent"
+        className={`group relative flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-lg border transition-all duration-200
+          ${isActive ? "bg-[#14b4dc]/10 border-[#14b4dc]/30"
+          : isHov   ? "bg-[#14b4dc]/5 border-[#14b4dc]/30"
           :            "bg-transparent border-transparent"}`}
       >
         <div className={`flex items-center justify-center shrink-0 w-[28px] h-[28px] rounded-lg transition-colors duration-150
@@ -177,7 +177,7 @@ export default function Sidebar() {
             />
           ) : (
             <div className="flex items-center gap-1.5">
-              <p className={`text-[13px] font-medium truncate ${isActive ? "text-slate-100" : "text-slate-300"}`}>
+              <p className={`text-sm font-medium tracking-tight truncate ${isActive ? "text-slate-100" : "text-slate-300"}`}>
                 {chat.title}
               </p>
               {chat.isPinned && (
@@ -272,20 +272,7 @@ export default function Sidebar() {
       </button>
 
       <div className="flex-1 flex flex-col items-center gap-1 overflow-y-auto w-full px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden mt-1">
-        {filteredConversations.map((chat) => {
-          const isActive = selectedConversation?._id === chat._id;
-          return (
-            <button
-              key={chat._id}
-              onClick={() => handleSelectConversation(chat)}
-              title={chat.title}
-              className={`flex items-center justify-center w-9 h-9 rounded-xl transition-colors duration-150 border-none cursor-pointer
-                ${isActive ? "bg-[rgba(20,180,220,0.12)] text-[#14b4dc]" : "bg-transparent text-slate-500 hover:bg-[#132335] hover:text-slate-300"}`}
-            >
-              <MessageSquare size={15} />
-            </button>
-          );
-        })}
+        {/* Chat history is hidden in collapsed view per user request */}
       </div>
 
       <div className="mt-auto">
@@ -375,7 +362,8 @@ export default function Sidebar() {
       </div>
 
       {/* Chat list */}
-      <div className="flex-1 overflow-y-auto px-2.5 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="relative flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto px-2.5 pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {filteredConversations.length === 0 ? (
           <div className="px-3 py-8 text-center">
             <p className="text-[12px] text-slate-600">
@@ -388,30 +376,32 @@ export default function Sidebar() {
           <>
             {groupedConversations.pinned.length > 0 && (
               <>
-                <p className="px-3 pt-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">Pinned</p>
+                <p className="px-3 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">Pinned</p>
                 {groupedConversations.pinned.map(chat => renderChatItem(chat))}
               </>
             )}
             {groupedConversations.today.length > 0 && (
               <>
-                <p className="px-3 pt-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">Today</p>
+                <p className="px-3 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">Today</p>
                 {groupedConversations.today.map(chat => renderChatItem(chat))}
               </>
             )}
             {groupedConversations.yesterday.length > 0 && (
               <>
-                <p className="px-3 pt-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">Yesterday</p>
+                <p className="px-3 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">Yesterday</p>
                 {groupedConversations.yesterday.map(chat => renderChatItem(chat))}
               </>
             )}
             {groupedConversations.older.length > 0 && (
               <>
-                <p className="px-3 pt-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">Older</p>
+                <p className="px-3 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">Older</p>
                 {groupedConversations.older.map(chat => renderChatItem(chat))}
               </>
             )}
           </>
         )}
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-[#0b1621] to-transparent pointer-events-none" />
       </div>
 
       {/* Divider */}
@@ -466,7 +456,7 @@ export default function Sidebar() {
     </div>
   );
 
-  if (collapsed) return <CollapsedRail />;
+  if (collapsed) return CollapsedRail();
 
   return (
     <>
@@ -494,7 +484,7 @@ export default function Sidebar() {
         transition-transform duration-250
         ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}>
-        <SidebarContent />
+        {SidebarContent()}
       </div>
 
 <BillingDrawer

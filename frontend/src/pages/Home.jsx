@@ -5,7 +5,8 @@ import Sidebar from "../components/Sidebar";
 
 function Home() {
   return (
-    <div className="h-screen flex bg-[#060d14] text-white overflow-hidden">
+    <div className="h-screen flex bg-[var(--bg-base)] text-[var(--text-primary)] overflow-hidden relative">
+      <div className="absolute inset-0 bg-noise z-0 pointer-events-none mix-blend-overlay"></div>
       <Sidebar />
       <ChatArea />
       <ArtifactPanel />
