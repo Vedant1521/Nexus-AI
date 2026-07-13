@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Plus, MessageSquare, Settings, LogOut, User, PenSquare, Menu, X, Coins, ConeIcon, CoinsIcon, MoreVertical, Pin, PinOff, Trash2, Edit2, Crown, Search } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../utils/axios";
-import { setUserData } from "../redux/user.slice";
+import { setUserData, clearAuth } from "../redux/user.slice";
 import { createConversation, getConversations, updateConversations, deleteConversationApi } from "../features/conversation.api";
 import { addConversation, setConversations, setSelectedConversation, removeConversation, updateConversationState } from "../redux/conversation.slice";
 import { getMessages } from "../features/message.api";
@@ -61,7 +61,7 @@ export default function Sidebar() {
   const logout = async () => {
     try {
       await api.get("/api/auth/logout");
-      dispatch(setUserData(null));
+      dispatch(clearAuth());
     } catch (error) {
       console.log(error);
     }

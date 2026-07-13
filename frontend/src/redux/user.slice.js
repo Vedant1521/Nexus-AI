@@ -1,21 +1,33 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { act } from 'react'
 
 const initialState = {
-  userData:null
+  userData: null,
+  isAuthLoading: true,
+  authError: null,
 }
 
 export const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUserData:(state,action)=>{
-        state.userData=action.payload
-    }
+    setUserData: (state, action) => {
+      state.userData = action.payload
+      state.isAuthLoading = false
+      state.authError = null
+    },
+    authFailed: (state, action) => {
+      state.userData = null
+      state.isAuthLoading = false
+      state.authError = action.payload
+    },
+    clearAuth: (state) => {
+      state.userData = null
+      state.isAuthLoading = false
+      state.authError = null
+    },
   },
 })
 
-// Action creators are generated for each case reducer function
-export const {setUserData} = userSlice.actions
+export const { setUserData, authFailed, clearAuth } = userSlice.actions
 
 export default userSlice.reducer
