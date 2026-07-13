@@ -358,8 +358,6 @@ VITE_FIREBASE_API_KEY=<your-firebase-api-key>
 VITE_RAZORPAY_KEY=<your-razorpay-key-id>
 ```
 
-> ⚠️ **Important:** Never commit `.env` files to version control. All `.env` files are listed in `.gitignore`.
-
 ---
 
 ## 🚀 Getting Started
@@ -367,7 +365,7 @@ VITE_RAZORPAY_KEY=<your-razorpay-key-id>
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/nexus-ai.git
+git clone https://github.com/Vedant1521/nexus-ai.git
 cd nexus-ai
 ```
 
@@ -375,7 +373,7 @@ cd nexus-ai
 
 ```bash
 cd backend
-docker-compose up -d
+docker compose up
 ```
 
 This starts a Redis container on `localhost:6379`.
@@ -645,7 +643,7 @@ Currently, Docker Compose is used for the **Redis** dependency:
 
 ```bash
 cd backend
-docker-compose up -d
+docker compose up
 ```
 
 Individual service `Dockerfile`s are included for containerized deployment of each microservice.
