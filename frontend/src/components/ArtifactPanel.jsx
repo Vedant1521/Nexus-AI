@@ -149,13 +149,18 @@ ${htmlFile?.content || ""}
     <div className="flex flex-col h-full bg-[#0b1621]">
 
       {/* Header */}
-      <div className="h-14 px-4 border-b border-white/[0.06] flex items-center gap-3 shrink-0">
-        <button
-          onClick={onClose ?? (() => setCollapsed(true))}
-          className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/[0.05] transition-colors duration-150 bg-transparent border-none cursor-pointer shrink-0"
-        >
-          {onClose ? <X size={15} /> : <PanelRightClose size={15} />}
-        </button>
+      <div className="h-14 px-4 border-b border-[var(--border)] flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0 pr-2">
+          <div 
+            onClick={onClose ?? (() => setCollapsed(true))}
+            className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e] cursor-pointer hover:bg-[#ff5f56]/80 flex items-center justify-center group" 
+            title={onClose ? "Close" : "Minimize"}
+          >
+            <X size={8} className="text-[#990000] opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+          <div className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123] cursor-default" />
+          <div className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29] cursor-default" />
+        </div>
 
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <div className="flex items-center justify-center w-6 h-6 rounded-md bg-[#14b4dc]/10 border border-[#14b4dc]/20 shrink-0">
@@ -227,17 +232,6 @@ ${htmlFile?.content || ""}
                 onClick={(e) => e.stopPropagation()}
                 className="absolute right-0 top-9 z-50 w-40 bg-[#0f1e2e] border border-[rgba(20,180,220,0.12)] rounded-xl py-1.5 shadow-xl"
               >
-                {/* Copy button */}
-                {tab === "code" && !showDiff && (
-                  <button
-                    onClick={() => { handleCopy(); setMoreMenuOpen(false); }}
-                    className="w-full flex items-center gap-2 px-3.5 py-2 text-left text-xs font-medium text-slate-300 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
-                  >
-                    {copied ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
-                    {copied ? "Copied" : "Copy Code"}
-                  </button>
-                )}
-                
                 {/* Diff Button */}
                 {tab === "code" && allArtifactVersions.length > 1 && (
                   <button
@@ -263,39 +257,7 @@ ${htmlFile?.content || ""}
             )}
           </div>
 
-          {/* Deploy Button */}
-          {canPreview && (
-            <button
-              onClick={onDeployClick}
-              disabled={deploying}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-200 active:scale-[0.97] border shrink-0 cursor-pointer disabled:opacity-50
-                ${deployedUrl 
-                  ? "bg-green-500/10 border-green-500/20 text-green-400 hover:bg-green-500/15" 
-                  : "bg-[#14b4dc]/10 border border-[#14b4dc]/20 text-[#14b4dc] hover:bg-[#14b4dc]/15 shadow-[0_0_10px_rgba(20,180,220,0.05)]"
-                }`}
-              title={deployedUrl ? "Click to open deployed site" : "Deploy static site to live hosting"}
-            >
-              {deploying ? (
-                <>
-                  <svg className="animate-spin h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  <span>Deploying...</span>
-                </>
-              ) : deployedUrl ? (
-                <>
-                  <Globe size={12} />
-                  <span>Live URL</span>
-                </>
-              ) : (
-                <>
-                  <Globe size={12} />
-                  <span>Deploy</span>
-                </>
-              )}
-            </button>
-          )}
+          {/* Deploy Button removed from here (moving to bottom floating pill) */}
 
           {canPreview && (
             <div className="flex items-center gap-1 bg-white/[0.04] border border-white/[0.06] p-1 rounded-lg">
@@ -303,20 +265,26 @@ ${htmlFile?.content || ""}
                 onClick={() => {
                   setTab("code");
                 }}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors duration-150
-                  ${tab === "code" ? "bg-gradient-to-br from-[#14b4dc] to-[#0d9488] text-white" : "text-slate-500 hover:text-slate-200"}`}
+                className={`relative flex items-center gap-1.5 px-3 py-1 text-[11px] font-medium rounded-md transition-colors duration-150 cursor-pointer
+                  ${tab === "code" ? "text-white" : "text-slate-500 hover:text-slate-200"}`}
               >
-                <Code2 size={11} /> Code
+                {tab === "code" && (
+                  <motion.div layoutId="artifactTab" className="absolute inset-0 bg-gradient-to-br from-[#14b4dc] to-[#0d9488] rounded-md shadow-sm" transition={{ type: "spring", stiffness: 300, damping: 30 }} />
+                )}
+                <Code2 size={11} className="relative z-10" /> <span className="relative z-10">Code</span>
               </button>
               <button
                 onClick={() => {
                   setTab("preview");
                   setShowDiff(false); // Disable diff on preview
                 }}
-                className={`flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors duration-150
-                  ${tab === "preview" ? "bg-gradient-to-br from-[#14b4dc] to-[#0d9488] text-white" : "text-slate-500 hover:text-slate-200"}`}
+                className={`relative flex items-center gap-1.5 px-3 py-1 text-[11px] font-medium rounded-md transition-colors duration-150 cursor-pointer
+                  ${tab === "preview" ? "text-white" : "text-slate-500 hover:text-slate-200"}`}
               >
-                <Eye size={11} /> Preview
+                {tab === "preview" && (
+                  <motion.div layoutId="artifactTab" className="absolute inset-0 bg-gradient-to-br from-[#14b4dc] to-[#0d9488] rounded-md shadow-sm" transition={{ type: "spring", stiffness: 300, damping: 30 }} />
+                )}
+                <Eye size={11} className="relative z-10" /> <span className="relative z-10">Preview</span>
               </button>
             </div>
           )}
@@ -354,7 +322,7 @@ ${htmlFile?.content || ""}
       </AnimatePresence>
 
       {/* Editor / Preview */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden relative bg-[#03070b] shadow-[inset_0_4px_30px_rgba(0,0,0,0.8)]">
         <AnimatePresence mode="wait">
           {tab === "preview" && canPreview ? (
             <motion.div key="preview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="w-full h-full">
@@ -391,6 +359,51 @@ ${htmlFile?.content || ""}
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Floating Command Bar */}
+        {tab === "code" && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5 p-1.5 rounded-2xl bg-white/[0.04] backdrop-blur-xl border border-white/[0.1] shadow-2xl z-10">
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold text-slate-300 hover:text-white hover:bg-white/[0.08] transition-all cursor-pointer border border-transparent"
+            >
+              {copied ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+              {copied ? "Copied" : "Copy"}
+            </button>
+            
+            {canPreview && (
+              <button
+                onClick={onDeployClick}
+                disabled={deploying}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all cursor-pointer disabled:opacity-50 border
+                  ${deployedUrl 
+                    ? "bg-green-500/10 border-green-500/20 text-green-400 hover:bg-green-500/15" 
+                    : "bg-[#14b4dc]/10 border-[#14b4dc]/20 text-[#14b4dc] hover:bg-[#14b4dc]/15 shadow-[0_0_10px_rgba(20,180,220,0.05)]"
+                  }`}
+              >
+                {deploying ? (
+                  <>
+                    <svg className="animate-spin h-3.5 w-3.5 text-current" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <span>Deploying...</span>
+                  </>
+                ) : deployedUrl ? (
+                  <>
+                    <Globe size={13} />
+                    <span>Live URL</span>
+                  </>
+                ) : (
+                  <>
+                    <Globe size={13} />
+                    <span>Deploy</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
